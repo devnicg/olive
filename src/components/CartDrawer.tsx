@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { X, Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import { useI18n } from '@/context/I18nContext';
 
 export default function CartDrawer() {
   const {
@@ -16,6 +17,7 @@ export default function CartDrawer() {
     totalItems,
     totalPrice,
   } = useCart();
+  const { t } = useI18n();
 
   return (
     <AnimatePresence>
@@ -43,7 +45,7 @@ export default function CartDrawer() {
               <div className="flex items-center gap-3">
                 <ShoppingBag className="w-6 h-6 text-olive-600" />
                 <h2 className="text-xl font-serif font-semibold text-olive-800">
-                  Your Cart
+                  {t('cart.title')}
                 </h2>
                 <span className="px-2 py-1 bg-olive-100 text-olive-600 text-sm font-medium rounded-full">
                   {totalItems} items
@@ -63,7 +65,7 @@ export default function CartDrawer() {
                 <div className="flex flex-col items-center justify-center h-full text-center">
                   <ShoppingBag className="w-16 h-16 text-olive-200 mb-4" />
                   <p className="text-olive-600 font-medium mb-2">
-                    Your cart is empty
+                    {t('cart.empty')}
                   </p>
                   <p className="text-olive-400 text-sm mb-6">
                     Add some delicious olive oils to get started!
@@ -161,7 +163,7 @@ export default function CartDrawer() {
 
                 {/* Subtotal */}
                 <div className="flex items-center justify-between text-olive-600">
-                  <span>Subtotal</span>
+                  <span>{t('cart.subtotal')}</span>
                   <span>${totalPrice.toFixed(2)}</span>
                 </div>
                 <div className="flex items-center justify-between text-olive-600">
@@ -182,7 +184,7 @@ export default function CartDrawer() {
                     whileTap={{ scale: 0.98 }}
                     className="w-full py-4 bg-gold-500 hover:bg-gold-600 text-white font-semibold rounded-full transition-colors shadow-lg shadow-gold-500/30"
                   >
-                    Proceed to Checkout
+                    {t('cart.checkout')}
                   </motion.button>
                 </Link>
 
@@ -191,7 +193,7 @@ export default function CartDrawer() {
                   onClick={closeCart}
                   className="block text-center text-olive-600 hover:text-olive-800 text-sm transition-colors"
                 >
-                  Continue Shopping
+                  {t('cart.continueShopping')}
                 </Link>
               </div>
             )}

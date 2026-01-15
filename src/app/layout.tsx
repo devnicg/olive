@@ -2,6 +2,9 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 import { CartProvider } from '@/context/CartContext';
+import { FavoritesProvider } from '@/context/FavoritesContext';
+import { StoreSettingsProvider } from '@/context/StoreSettingsContext';
+import { I18nProvider } from '@/context/I18nContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import CartDrawer from '@/components/CartDrawer';
@@ -21,12 +24,18 @@ export default function RootLayout({
     <html lang="en" className="scroll-smooth">
       <body className="antialiased">
         <AuthProvider>
-          <CartProvider>
-            <Navbar />
-            <CartDrawer />
-            <main>{children}</main>
-            <Footer />
-          </CartProvider>
+          <I18nProvider>
+            <StoreSettingsProvider>
+              <CartProvider>
+                <FavoritesProvider>
+                  <Navbar />
+                  <CartDrawer />
+                  <main>{children}</main>
+                  <Footer />
+                </FavoritesProvider>
+              </CartProvider>
+            </StoreSettingsProvider>
+          </I18nProvider>
         </AuthProvider>
       </body>
     </html>

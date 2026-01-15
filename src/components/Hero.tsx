@@ -3,8 +3,10 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowRight, Award, Truck, Shield } from 'lucide-react';
+import { useI18n } from '@/context/I18nContext';
 
 export default function Hero() {
+  const { t } = useI18n();
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image with Overlay */}
@@ -51,7 +53,7 @@ export default function Hero() {
           transition={{ duration: 0.8, delay: 0.2 }}
         >
           <span className="inline-block px-4 py-2 bg-gold-500/20 border border-gold-400/30 rounded-full text-gold-300 text-sm font-medium mb-6">
-            Premium Quality Since 1952
+            {t('hero.tagline')}
           </span>
         </motion.div>
 
@@ -61,9 +63,9 @@ export default function Hero() {
           transition={{ duration: 0.8, delay: 0.4 }}
           className="text-5xl md:text-7xl lg:text-8xl font-serif font-bold text-white mb-6 leading-tight"
         >
-          Pure. Natural.
+          {t('hero.heading1')}
           <br />
-          <span className="text-gold-400">Exceptional.</span>
+          <span className="text-gold-400">{t('hero.heading2')}</span>
         </motion.h1>
 
         <motion.p
@@ -72,8 +74,7 @@ export default function Hero() {
           transition={{ duration: 0.8, delay: 0.6 }}
           className="text-xl md:text-2xl text-olive-100/90 max-w-3xl mx-auto mb-10 leading-relaxed"
         >
-          Experience the finest extra virgin olive oils, cold-pressed from
-          hand-picked olives in our Mediterranean groves.
+          {t('hero.description')}
         </motion.p>
 
         <motion.div
@@ -88,7 +89,7 @@ export default function Hero() {
               whileTap={{ scale: 0.95 }}
               className="group flex items-center gap-2 px-8 py-4 bg-gold-500 hover:bg-gold-600 text-white font-semibold rounded-full transition-all duration-300 shadow-lg shadow-gold-500/30"
             >
-              Shop Collection
+              {t('hero.shopCollection')}
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </motion.button>
           </Link>
@@ -98,7 +99,7 @@ export default function Hero() {
               whileTap={{ scale: 0.95 }}
               className="px-8 py-4 border-2 border-white/30 text-white font-semibold rounded-full hover:bg-white/10 transition-all duration-300"
             >
-              Our Story
+              {t('hero.ourStory')}
             </motion.button>
           </Link>
         </motion.div>
@@ -111,9 +112,9 @@ export default function Hero() {
           className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto"
         >
           {[
-            { icon: Award, text: 'Award Winning' },
-            { icon: Truck, text: 'Free Shipping $50+' },
-            { icon: Shield, text: '100% Satisfaction' },
+            { icon: Award, text: t('hero.awardWinning') },
+            { icon: Truck, text: t('hero.freeShipping') },
+            { icon: Shield, text: t('hero.satisfaction') },
           ].map((item, index) => (
             <div
               key={index}

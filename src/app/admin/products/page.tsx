@@ -207,19 +207,19 @@ export default function ProductsPage() {
       {/* Product Modal */}
       <AnimatePresence>
         {modalMode && (
-          <>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 lg:pl-[calc(16rem+1rem)]">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setModalMode(null)}
-              className="fixed inset-0 bg-black/50 z-50"
+              className="absolute inset-0 bg-black/50"
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-2xl bg-white rounded-2xl shadow-2xl z-50 overflow-auto max-h-[90vh]"
+              className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-auto max-h-[90vh]"
             >
               <div className="p-6 border-b border-olive-100 flex items-center justify-between">
                 <h2 className="text-xl font-serif font-bold text-olive-800">
@@ -376,26 +376,26 @@ export default function ProductsPage() {
                 </motion.button>
               </div>
             </motion.div>
-          </>
+          </div>
         )}
       </AnimatePresence>
 
       {/* Delete Confirmation */}
       <AnimatePresence>
         {deleteConfirm && (
-          <>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 lg:pl-[calc(16rem+1rem)]">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setDeleteConfirm(null)}
-              className="fixed inset-0 bg-black/50 z-50"
+              className="absolute inset-0 bg-black/50"
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-2xl shadow-2xl z-50 p-6"
+              className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl p-6"
             >
               <div className="text-center">
                 <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -423,7 +423,7 @@ export default function ProductsPage() {
                 </div>
               </div>
             </motion.div>
-          </>
+          </div>
         )}
       </AnimatePresence>
     </div>

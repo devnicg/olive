@@ -16,6 +16,7 @@ import {
   LogOut,
   ChevronLeft,
   User,
+  Sparkles,
 } from 'lucide-react';
 import { ProductProvider } from '@/context/ProductContext';
 import { useAuth } from '@/context/AuthContext';
@@ -25,6 +26,7 @@ const sidebarLinks = [
   { href: '/admin/products', label: 'Products', icon: Package },
   { href: '/admin/orders', label: 'Orders', icon: ShoppingCart },
   { href: '/admin/customers', label: 'Customers', icon: Users },
+  { href: '/admin/showcase', label: 'Showcase', icon: Sparkles },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ];
 

@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
 import { products, categories } from '@/data/products';
 import ProductCard from '@/components/ProductCard';
+import ProductShowcase from '@/components/ProductShowcase';
 
 type SortOption = 'featured' | 'price-asc' | 'price-desc' | 'rating' | 'name';
 
@@ -56,6 +57,9 @@ export default function ShopPage() {
 
   return (
     <div className="min-h-screen bg-olive-50 pt-24">
+      {/* Product Showcase Banner */}
+      <ProductShowcase />
+
       {/* Header */}
       <div className="bg-olive-800 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
