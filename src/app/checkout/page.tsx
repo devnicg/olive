@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import {
   CreditCard,
   Truck,
@@ -16,15 +15,14 @@ import {
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { createClient } from '@/lib/supabase/client';
+import StripeCheckoutForm from '@/components/StripeCheckoutForm';
 
 type Step = 'shipping' | 'payment' | 'confirmation';
 
 export default function CheckoutPage() {
-  const router = useRouter();
   const { state, totalPrice, clearCart } = useCart();
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState<Step>('shipping');
-  const [isProcessing, setIsProcessing] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
 
   const [shippingData, setShippingData] = useState({
@@ -39,13 +37,6 @@ export default function CheckoutPage() {
     country: 'United States',
   });
 
-  const [paymentData, setPaymentData] = useState({
-    cardNumber: '',
-    cardName: '',
-    expiry: '',
-    cvv: '',
-  });
-
   const shippingCost = totalPrice >= 50 ? 0 : 5.99;
   const tax = totalPrice * 0.08;
   const finalTotal = totalPrice + shippingCost + tax;
@@ -55,10 +46,7 @@ export default function CheckoutPage() {
     setCurrentStep('payment');
   };
 
-  const handlePaymentSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsProcessing(true);
-
+  const handlePaymentSuccess = async (paymentIntentId: string) => {
     try {
       const supabase = createClient();
 
@@ -76,7 +64,7 @@ export default function CheckoutPage() {
         .from('orders')
         .insert({
           user_id: user?.id || null,
-          status: 'pending',
+          status: 'processing',
           total: finalTotal,
           shipping_address: {
             firstName: shippingData.firstName,
@@ -96,20 +84,16 @@ export default function CheckoutPage() {
 
       if (error) {
         console.error('Error creating order:', error);
-        // Still proceed with confirmation even if database save fails
-        // This allows guest checkout to work
       }
 
       if (order) {
         setOrderId(order.id);
       }
 
-      setIsProcessing(false);
       setCurrentStep('confirmation');
       clearCart();
     } catch (error) {
       console.error('Error processing order:', error);
-      setIsProcessing(false);
       setCurrentStep('confirmation');
       clearCart();
     }
@@ -164,15 +148,26 @@ export default function CheckoutPage() {
           <p className="text-olive-500 text-sm mb-8">
             Order #{orderId ? orderId.slice(0, 8).toUpperCase() : `OLV-${Math.random().toString(36).substr(2, 9).toUpperCase()}`}
           </p>
-          <Link href="/shop">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="px-8 py-3 bg-gold-500 hover:bg-gold-600 text-white font-semibold rounded-full transition-colors"
-            >
-              Continue Shopping
-            </motion.button>
-          </Link>
+          <div className="space-y-4">
+            <Link href="/orders">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="w-full px-8 py-3 bg-gold-500 hover:bg-gold-600 text-white font-semibold rounded-full transition-colors"
+              >
+                Track Your Order
+              </motion.button>
+            </Link>
+            <Link href="/shop">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="w-full px-8 py-3 border-2 border-olive-200 text-olive-600 font-semibold rounded-full hover:bg-olive-50 transition-colors"
+              >
+                Continue Shopping
+              </motion.button>
+            </Link>
+          </div>
         </motion.div>
       </div>
     );
@@ -386,95 +381,11 @@ export default function CheckoutPage() {
                   </h2>
                 </div>
 
-                <form onSubmit={handlePaymentSubmit} className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-medium text-olive-700 mb-2">
-                      Card Number *
-                    </label>
-                    <input
-                      type="text"
-                      value={paymentData.cardNumber}
-                      onChange={(e) =>
-                        setPaymentData({ ...paymentData, cardNumber: e.target.value })
-                      }
-                      placeholder="1234 5678 9012 3456"
-                      required
-                      className="w-full px-4 py-3 rounded-xl border border-olive-200 focus:border-gold-400 focus:ring-2 focus:ring-gold-400/20 outline-none transition-all"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-olive-700 mb-2">
-                      Name on Card *
-                    </label>
-                    <input
-                      type="text"
-                      value={paymentData.cardName}
-                      onChange={(e) =>
-                        setPaymentData({ ...paymentData, cardName: e.target.value })
-                      }
-                      required
-                      className="w-full px-4 py-3 rounded-xl border border-olive-200 focus:border-gold-400 focus:ring-2 focus:ring-gold-400/20 outline-none transition-all"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-olive-700 mb-2">
-                        Expiry Date *
-                      </label>
-                      <input
-                        type="text"
-                        value={paymentData.expiry}
-                        onChange={(e) =>
-                          setPaymentData({ ...paymentData, expiry: e.target.value })
-                        }
-                        placeholder="MM/YY"
-                        required
-                        className="w-full px-4 py-3 rounded-xl border border-olive-200 focus:border-gold-400 focus:ring-2 focus:ring-gold-400/20 outline-none transition-all"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-olive-700 mb-2">
-                        CVV *
-                      </label>
-                      <input
-                        type="text"
-                        value={paymentData.cvv}
-                        onChange={(e) =>
-                          setPaymentData({ ...paymentData, cvv: e.target.value })
-                        }
-                        placeholder="123"
-                        required
-                        className="w-full px-4 py-3 rounded-xl border border-olive-200 focus:border-gold-400 focus:ring-2 focus:ring-gold-400/20 outline-none transition-all"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-sm text-olive-500">
-                    <Lock className="w-4 h-4" />
-                    Your payment information is encrypted and secure
-                  </div>
-
-                  <div className="flex gap-4">
-                    <button
-                      type="button"
-                      onClick={() => setCurrentStep('shipping')}
-                      className="flex-1 py-4 border-2 border-olive-200 text-olive-600 font-semibold rounded-full hover:bg-olive-50 transition-colors"
-                    >
-                      Back
-                    </button>
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      type="submit"
-                      disabled={isProcessing}
-                      className="flex-1 py-4 bg-gold-500 hover:bg-gold-600 text-white font-semibold rounded-full transition-colors shadow-lg disabled:opacity-70"
-                    >
-                      {isProcessing ? 'Processing...' : `Pay $${finalTotal.toFixed(2)}`}
-                    </motion.button>
-                  </div>
-                </form>
+                <StripeCheckoutForm
+                  amount={finalTotal}
+                  onSuccess={handlePaymentSuccess}
+                  onBack={() => setCurrentStep('shipping')}
+                />
               </motion.div>
             )}
           </div>
@@ -534,7 +445,7 @@ export default function CheckoutPage() {
                 <ShieldCheck className="w-8 h-8" />
                 <div className="text-xs text-left">
                   <p className="font-medium text-olive-600">Secure Checkout</p>
-                  <p>256-bit SSL encryption</p>
+                  <p>Powered by Stripe</p>
                 </div>
               </div>
             </div>
