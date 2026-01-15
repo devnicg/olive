@@ -3,9 +3,11 @@
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Star, ShoppingCart, Eye } from 'lucide-react';
+import { Star, ShoppingCart, Eye, Heart } from 'lucide-react';
 import { Product } from '@/data/products';
 import { useCart } from '@/context/CartContext';
+import { useFavorites } from '@/context/FavoritesContext';
+import { useI18n } from '@/context/I18nContext';
 
 interface ProductCardProps {
   product: Product;
@@ -14,6 +16,15 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, index = 0 }: ProductCardProps) {
   const { addToCart } = useCart();
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const { t } = useI18n();
+  const isProductFavorite = isFavorite(product.id);
+
+  const handleToggleFavorite = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleFavorite(product.id);
+  };
 
   return (
     <motion.div
@@ -35,15 +46,31 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
         <div className="absolute top-4 left-4 flex flex-col gap-2">
           {product.featured && (
             <span className="px-3 py-1 bg-gold-500 text-white text-xs font-semibold rounded-full">
-              Featured
+              {t('product.featured')}
             </span>
           )}
           {!product.inStock && (
             <span className="px-3 py-1 bg-red-500 text-white text-xs font-semibold rounded-full">
-              Out of Stock
+              {t('product.outOfStock')}
             </span>
           )}
         </div>
+
+        {/* Favorite Button */}
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={handleToggleFavorite}
+          className="absolute top-4 right-4 p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow z-10"
+        >
+          <Heart
+            className={`w-5 h-5 transition-colors ${
+              isProductFavorite
+                ? 'text-red-500 fill-red-500'
+                : 'text-olive-400 hover:text-red-500'
+            }`}
+          />
+        </motion.button>
 
         {/* Quick Actions */}
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
@@ -114,7 +141,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
             disabled={!product.inStock}
             className="px-4 py-2 bg-olive-600 hover:bg-olive-700 text-white text-sm font-medium rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {product.inStock ? 'Add to Cart' : 'Sold Out'}
+            {product.inStock ? t('product.addToCart') : t('product.outOfStock')}
           </motion.button>
         </div>
       </div>

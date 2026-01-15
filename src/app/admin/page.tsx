@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   Package,
@@ -8,51 +9,70 @@ import {
   TrendingUp,
   Users,
   ArrowUpRight,
-  ArrowDownRight,
+  RefreshCw,
 } from 'lucide-react';
 import { useProducts } from '@/context/ProductContext';
+import { createClient } from '@/lib/supabase/client';
 
-const stats = [
-  {
-    label: 'Total Revenue',
-    value: '$24,580',
-    change: '+12.5%',
-    trend: 'up',
-    icon: DollarSign,
-  },
-  {
-    label: 'Total Orders',
-    value: '156',
-    change: '+8.2%',
-    trend: 'up',
-    icon: ShoppingCart,
-  },
-  {
-    label: 'Active Products',
-    value: '12',
-    change: '+2',
-    trend: 'up',
-    icon: Package,
-  },
-  {
-    label: 'Total Customers',
-    value: '1,245',
-    change: '+15.3%',
-    trend: 'up',
-    icon: Users,
-  },
-];
-
-const recentOrders = [
-  { id: 'OLV-001', customer: 'Sarah M.', amount: '$125.99', status: 'completed' },
-  { id: 'OLV-002', customer: 'John D.', amount: '$89.50', status: 'processing' },
-  { id: 'OLV-003', customer: 'Emily C.', amount: '$234.00', status: 'completed' },
-  { id: 'OLV-004', customer: 'Michael R.', amount: '$67.25', status: 'pending' },
-  { id: 'OLV-005', customer: 'Lisa T.', amount: '$156.75', status: 'completed' },
-];
+interface Order {
+  id: string;
+  total: number;
+  status: string;
+  created_at: string;
+  shipping_address: {
+    firstName?: string;
+    lastName?: string;
+  } | null;
+}
 
 export default function AdminDashboard() {
   const { state } = useProducts();
+  const [recentOrders, setRecentOrders] = useState<Order[]>([]);
+  const [stats, setStats] = useState({
+    totalRevenue: 0,
+    totalOrders: 0,
+    totalCustomers: 0,
+  });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      const supabase = createClient();
+
+      // Fetch recent orders
+      const { data: orders } = await supabase
+        .from('orders')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (orders) {
+        setRecentOrders(orders);
+      }
+
+      // Fetch stats
+      const { data: allOrders } = await supabase
+        .from('orders')
+        .select('total, status');
+
+      const { count: customerCount } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
+
+      if (allOrders) {
+        const totalRevenue = allOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+        setStats({
+          totalRevenue,
+          totalOrders: allOrders.length,
+          totalCustomers: customerCount || 0,
+        });
+      }
+
+      setIsLoading(false);
+    };
+
+    fetchDashboardData();
+  }, []);
 
   return (
     <div className="p-6 lg:p-8">
@@ -66,40 +86,81 @@ export default function AdminDashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {stats.map((stat, index) => (
-          <motion.div
-            key={stat.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: index * 0.1 }}
-            className="bg-white rounded-2xl p-6 shadow-lg"
-          >
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-olive-500 text-sm">{stat.label}</p>
-                <p className="text-3xl font-bold text-olive-800 mt-1">{stat.value}</p>
-              </div>
-              <div className="p-3 bg-olive-100 rounded-xl">
-                <stat.icon className="w-6 h-6 text-olive-600" />
-              </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0 }}
+          className="bg-white rounded-2xl p-6 shadow-lg"
+        >
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-olive-500 text-sm">Total Revenue</p>
+              <p className="text-3xl font-bold text-olive-800 mt-1">
+                {isLoading ? '...' : `$${stats.totalRevenue.toFixed(2)}`}
+              </p>
             </div>
-            <div className="flex items-center gap-1 mt-4">
-              {stat.trend === 'up' ? (
-                <ArrowUpRight className="w-4 h-4 text-green-500" />
-              ) : (
-                <ArrowDownRight className="w-4 h-4 text-red-500" />
-              )}
-              <span
-                className={`text-sm font-medium ${
-                  stat.trend === 'up' ? 'text-green-500' : 'text-red-500'
-                }`}
-              >
-                {stat.change}
-              </span>
-              <span className="text-olive-400 text-sm">vs last month</span>
+            <div className="p-3 bg-olive-100 rounded-xl">
+              <DollarSign className="w-6 h-6 text-olive-600" />
             </div>
-          </motion.div>
-        ))}
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="bg-white rounded-2xl p-6 shadow-lg"
+        >
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-olive-500 text-sm">Total Orders</p>
+              <p className="text-3xl font-bold text-olive-800 mt-1">
+                {isLoading ? '...' : stats.totalOrders}
+              </p>
+            </div>
+            <div className="p-3 bg-olive-100 rounded-xl">
+              <ShoppingCart className="w-6 h-6 text-olive-600" />
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+          className="bg-white rounded-2xl p-6 shadow-lg"
+        >
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-olive-500 text-sm">Active Products</p>
+              <p className="text-3xl font-bold text-olive-800 mt-1">
+                {state.products.length}
+              </p>
+            </div>
+            <div className="p-3 bg-olive-100 rounded-xl">
+              <Package className="w-6 h-6 text-olive-600" />
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+          className="bg-white rounded-2xl p-6 shadow-lg"
+        >
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-olive-500 text-sm">Total Customers</p>
+              <p className="text-3xl font-bold text-olive-800 mt-1">
+                {isLoading ? '...' : stats.totalCustomers}
+              </p>
+            </div>
+            <div className="p-3 bg-olive-100 rounded-xl">
+              <Users className="w-6 h-6 text-olive-600" />
+            </div>
+          </div>
+        </motion.div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -114,31 +175,45 @@ export default function AdminDashboard() {
             Recent Orders
           </h2>
           <div className="space-y-4">
-            {recentOrders.map((order) => (
-              <div
-                key={order.id}
-                className="flex items-center justify-between py-3 border-b border-olive-100 last:border-0"
-              >
-                <div>
-                  <p className="font-medium text-olive-800">{order.id}</p>
-                  <p className="text-sm text-olive-500">{order.customer}</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-semibold text-olive-800">{order.amount}</p>
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full ${
-                      order.status === 'completed'
-                        ? 'bg-green-100 text-green-600'
-                        : order.status === 'processing'
-                        ? 'bg-blue-100 text-blue-600'
-                        : 'bg-yellow-100 text-yellow-600'
-                    }`}
-                  >
-                    {order.status}
-                  </span>
-                </div>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <RefreshCw className="w-6 h-6 text-olive-400 animate-spin" />
               </div>
-            ))}
+            ) : recentOrders.length === 0 ? (
+              <p className="text-olive-500 text-center py-8">No orders yet</p>
+            ) : (
+              recentOrders.map((order) => (
+                <div
+                  key={order.id}
+                  className="flex items-center justify-between py-3 border-b border-olive-100 last:border-0"
+                >
+                  <div>
+                    <p className="font-medium text-olive-800">
+                      {order.id.slice(0, 8).toUpperCase()}
+                    </p>
+                    <p className="text-sm text-olive-500">
+                      {order.shipping_address?.firstName || 'Guest'} {order.shipping_address?.lastName || ''}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold text-olive-800">${order.total.toFixed(2)}</p>
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full ${
+                        order.status === 'completed'
+                          ? 'bg-green-100 text-green-600'
+                          : order.status === 'processing'
+                          ? 'bg-blue-100 text-blue-600'
+                          : order.status === 'shipped'
+                          ? 'bg-purple-100 text-purple-600'
+                          : 'bg-yellow-100 text-yellow-600'
+                      }`}
+                    >
+                      {order.status}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </motion.div>
 

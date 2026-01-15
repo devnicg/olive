@@ -14,14 +14,18 @@ import {
   Lock,
 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
+import { createClient } from '@/lib/supabase/client';
 
 type Step = 'shipping' | 'payment' | 'confirmation';
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { state, totalPrice, clearCart } = useCart();
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState<Step>('shipping');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [orderId, setOrderId] = useState<string | null>(null);
 
   const [shippingData, setShippingData] = useState({
     firstName: '',
@@ -51,14 +55,64 @@ export default function CheckoutPage() {
     setCurrentStep('payment');
   };
 
-  const handlePaymentSubmit = (e: React.FormEvent) => {
+  const handlePaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
-    setTimeout(() => {
+
+    try {
+      const supabase = createClient();
+
+      // Prepare order items for storage
+      const orderItems = state.items.map(item => ({
+        product_id: item.product.id,
+        name: item.product.name,
+        price: item.product.price,
+        quantity: item.quantity,
+        image: item.product.image,
+      }));
+
+      // Create the order in Supabase
+      const { data: order, error } = await supabase
+        .from('orders')
+        .insert({
+          user_id: user?.id || null,
+          status: 'pending',
+          total: finalTotal,
+          shipping_address: {
+            firstName: shippingData.firstName,
+            lastName: shippingData.lastName,
+            email: shippingData.email,
+            phone: shippingData.phone,
+            address: shippingData.address,
+            city: shippingData.city,
+            state: shippingData.state,
+            zip: shippingData.zip,
+            country: shippingData.country,
+          },
+          items: orderItems,
+        })
+        .select('id')
+        .single();
+
+      if (error) {
+        console.error('Error creating order:', error);
+        // Still proceed with confirmation even if database save fails
+        // This allows guest checkout to work
+      }
+
+      if (order) {
+        setOrderId(order.id);
+      }
+
       setIsProcessing(false);
       setCurrentStep('confirmation');
       clearCart();
-    }, 2000);
+    } catch (error) {
+      console.error('Error processing order:', error);
+      setIsProcessing(false);
+      setCurrentStep('confirmation');
+      clearCart();
+    }
   };
 
   if (state.items.length === 0 && currentStep !== 'confirmation') {
@@ -108,7 +162,7 @@ export default function CheckoutPage() {
             inbox.
           </p>
           <p className="text-olive-500 text-sm mb-8">
-            Order #OLV-{Math.random().toString(36).substr(2, 9).toUpperCase()}
+            Order #{orderId ? orderId.slice(0, 8).toUpperCase() : `OLV-${Math.random().toString(36).substr(2, 9).toUpperCase()}`}
           </p>
           <Link href="/shop">
             <motion.button

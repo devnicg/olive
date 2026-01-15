@@ -45,6 +45,20 @@ export async function updateSession(request: NextRequest) {
       url.searchParams.set('redirect', request.nextUrl.pathname);
       return NextResponse.redirect(url);
     }
+
+    // Check if user is an admin
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile?.is_admin) {
+      // Redirect non-admin users to home page
+      const url = request.nextUrl.clone();
+      url.pathname = '/';
+      return NextResponse.redirect(url);
+    }
   }
 
   return supabaseResponse;

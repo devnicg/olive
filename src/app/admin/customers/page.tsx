@@ -1,74 +1,87 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Mail, Phone, MapPin, Users, ShoppingBag } from 'lucide-react';
+import { Search, Mail, MapPin, Users, ShoppingBag, RefreshCw } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 
-const customers = [
-  {
-    id: '1',
-    name: 'Sarah Mitchell',
-    email: 'sarah@example.com',
-    phone: '+1 (555) 123-4567',
-    location: 'New York, NY',
-    orders: 12,
-    totalSpent: 1580.50,
-    joinDate: '2023-06-15',
-  },
-  {
-    id: '2',
-    name: 'John Davidson',
-    email: 'john@example.com',
-    phone: '+1 (555) 234-5678',
-    location: 'Los Angeles, CA',
-    orders: 8,
-    totalSpent: 945.75,
-    joinDate: '2023-08-22',
-  },
-  {
-    id: '3',
-    name: 'Emily Chen',
-    email: 'emily@example.com',
-    phone: '+1 (555) 345-6789',
-    location: 'San Francisco, CA',
-    orders: 15,
-    totalSpent: 2340.00,
-    joinDate: '2023-03-10',
-  },
-  {
-    id: '4',
-    name: 'Michael Roberts',
-    email: 'michael@example.com',
-    phone: '+1 (555) 456-7890',
-    location: 'Chicago, IL',
-    orders: 5,
-    totalSpent: 425.25,
-    joinDate: '2023-11-05',
-  },
-  {
-    id: '5',
-    name: 'Lisa Thompson',
-    email: 'lisa@example.com',
-    phone: '+1 (555) 567-8901',
-    location: 'Miami, FL',
-    orders: 22,
-    totalSpent: 3156.75,
-    joinDate: '2022-12-01',
-  },
-];
+interface Customer {
+  id: string;
+  email: string;
+  full_name: string | null;
+  created_at: string;
+  orders: number;
+  totalSpent: number;
+}
 
 export default function CustomersPage() {
   const [search, setSearch] = useState('');
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      const supabase = createClient();
+
+      // Fetch profiles
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, email, full_name, created_at')
+        .order('created_at', { ascending: false });
+
+      if (profiles) {
+        // Fetch order stats for each customer
+        const customersWithStats = await Promise.all(
+          profiles.map(async (profile) => {
+            const { data: orders } = await supabase
+              .from('orders')
+              .select('total')
+              .eq('user_id', profile.id);
+
+            const orderCount = orders?.length || 0;
+            const totalSpent = orders?.reduce((sum, order) => sum + (order.total || 0), 0) || 0;
+
+            return {
+              id: profile.id,
+              email: profile.email || '',
+              full_name: profile.full_name,
+              created_at: profile.created_at,
+              orders: orderCount,
+              totalSpent,
+            };
+          })
+        );
+
+        setCustomers(customersWithStats);
+      }
+
+      setIsLoading(false);
+    };
+
+    fetchCustomers();
+  }, []);
 
   const filteredCustomers = customers.filter(
     (customer) =>
-      customer.name.toLowerCase().includes(search.toLowerCase()) ||
+      (customer.full_name?.toLowerCase() || '').includes(search.toLowerCase()) ||
       customer.email.toLowerCase().includes(search.toLowerCase())
   );
 
   const totalCustomers = customers.length;
   const totalRevenue = customers.reduce((sum, c) => sum + c.totalSpent, 0);
-  const avgOrderValue = totalRevenue / customers.reduce((sum, c) => sum + c.orders, 0);
+  const totalOrders = customers.reduce((sum, c) => sum + c.orders, 0);
+  const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
+  if (isLoading) {
+    return (
+      <div className="p-6 lg:p-8 flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <RefreshCw className="w-12 h-12 text-olive-400 mx-auto mb-4 animate-spin" />
+          <p className="text-olive-600">Loading customers...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 lg:p-8">
@@ -148,65 +161,59 @@ export default function CustomersPage() {
       </div>
 
       {/* Customers Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredCustomers.map((customer, index) => (
-          <motion.div
-            key={customer.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: index * 0.1 }}
-            className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow"
-          >
-            <div className="flex items-start justify-between mb-4">
-              <div className="w-12 h-12 bg-gold-100 rounded-full flex items-center justify-center">
-                <span className="text-gold-600 font-bold text-lg">
-                  {customer.name.charAt(0)}
+      {filteredCustomers.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredCustomers.map((customer, index) => (
+            <motion.div
+              key={customer.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: index * 0.1 }}
+              className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow"
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="w-12 h-12 bg-gold-100 rounded-full flex items-center justify-center">
+                  <span className="text-gold-600 font-bold text-lg">
+                    {(customer.full_name || customer.email).charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                <span className="text-sm text-olive-500">
+                  Since {new Date(customer.created_at).toLocaleDateString()}
                 </span>
               </div>
-              <span className="text-sm text-olive-500">
-                Since {customer.joinDate}
-              </span>
-            </div>
 
-            <h3 className="text-lg font-semibold text-olive-800 mb-2">
-              {customer.name}
-            </h3>
+              <h3 className="text-lg font-semibold text-olive-800 mb-2">
+                {customer.full_name || 'No name'}
+              </h3>
 
-            <div className="space-y-2 mb-4">
-              <div className="flex items-center gap-2 text-olive-600 text-sm">
-                <Mail className="w-4 h-4 text-olive-400" />
-                {customer.email}
+              <div className="space-y-2 mb-4">
+                <div className="flex items-center gap-2 text-olive-600 text-sm">
+                  <Mail className="w-4 h-4 text-olive-400" />
+                  {customer.email}
+                </div>
               </div>
-              <div className="flex items-center gap-2 text-olive-600 text-sm">
-                <Phone className="w-4 h-4 text-olive-400" />
-                {customer.phone}
-              </div>
-              <div className="flex items-center gap-2 text-olive-600 text-sm">
-                <MapPin className="w-4 h-4 text-olive-400" />
-                {customer.location}
-              </div>
-            </div>
 
-            <div className="pt-4 border-t border-olive-100 flex justify-between">
-              <div>
-                <p className="text-sm text-olive-500">Orders</p>
-                <p className="font-semibold text-olive-800">{customer.orders}</p>
+              <div className="pt-4 border-t border-olive-100 flex justify-between">
+                <div>
+                  <p className="text-sm text-olive-500">Orders</p>
+                  <p className="font-semibold text-olive-800">{customer.orders}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-olive-500">Total Spent</p>
+                  <p className="font-semibold text-olive-800">
+                    ${customer.totalSpent.toFixed(2)}
+                  </p>
+                </div>
               </div>
-              <div className="text-right">
-                <p className="text-sm text-olive-500">Total Spent</p>
-                <p className="font-semibold text-olive-800">
-                  ${customer.totalSpent.toFixed(2)}
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        ))}
-      </div>
-
-      {filteredCustomers.length === 0 && (
+            </motion.div>
+          ))}
+        </div>
+      ) : (
         <div className="bg-white rounded-2xl p-12 text-center shadow-lg">
           <Users className="w-12 h-12 text-olive-300 mx-auto mb-4" />
-          <p className="text-olive-600">No customers found</p>
+          <p className="text-olive-600">
+            {search ? 'No customers found matching your search' : 'No customers yet'}
+          </p>
         </div>
       )}
     </div>

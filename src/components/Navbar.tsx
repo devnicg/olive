@@ -4,9 +4,10 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingCart, Menu, X, Leaf, User, LogOut, Settings, ChevronDown } from 'lucide-react';
+import { ShoppingCart, Menu, X, Leaf, User, LogOut, Settings, ChevronDown, Package, Globe } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
+import { useI18n } from '@/context/I18nContext';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -14,9 +15,15 @@ export default function Navbar() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { toggleCart, totalItems } = useCart();
   const { user, signOut } = useAuth();
+  const { t, language, setLanguage, languages } = useI18n();
   const pathname = usePathname();
   const router = useRouter();
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const langMenuRef = useRef<HTMLDivElement>(null);
+  const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
+
+  // Hide navbar on admin pages (admin has its own navigation)
+  const isAdminPage = pathname?.startsWith('/admin');
 
   // Only use transparent navbar on homepage
   const isHomePage = pathname === '/';
@@ -30,11 +37,14 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close user menu when clicking outside
+  // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
         setIsUserMenuOpen(false);
+      }
+      if (langMenuRef.current && !langMenuRef.current.contains(event.target as Node)) {
+        setIsLangMenuOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -47,11 +57,16 @@ export default function Navbar() {
     router.push('/');
   };
 
+  // Don't render navbar on admin pages
+  if (isAdminPage) {
+    return null;
+  }
+
   const navLinks = [
-    { href: '/', label: 'Home' },
-    { href: '/shop', label: 'Shop' },
-    { href: '/about', label: 'About' },
-    { href: '/contact', label: 'Contact' },
+    { href: '/', label: t('nav.home') },
+    { href: '/shop', label: t('nav.shop') },
+    { href: '/about', label: t('nav.about') },
+    { href: '/contact', label: t('nav.contact') },
   ];
 
   return (
@@ -133,7 +148,7 @@ export default function Navbar() {
                   }`}
                 >
                   <User className="w-5 h-5" />
-                  Sign In
+                  {t('nav.signIn')}
                 </Link>
               )}
 
@@ -154,20 +169,72 @@ export default function Navbar() {
                     </div>
                     <div className="p-2">
                       <Link
+                        href="/orders"
+                        onClick={() => setIsUserMenuOpen(false)}
+                        className="flex items-center gap-3 px-3 py-2 text-olive-700 hover:bg-olive-50 rounded-lg transition-colors"
+                      >
+                        <Package className="w-4 h-4" />
+                        {t('nav.myOrders')}
+                      </Link>
+                      <Link
                         href="/admin"
                         onClick={() => setIsUserMenuOpen(false)}
                         className="flex items-center gap-3 px-3 py-2 text-olive-700 hover:bg-olive-50 rounded-lg transition-colors"
                       >
                         <Settings className="w-4 h-4" />
-                        Admin Dashboard
+                        {t('nav.adminDashboard')}
                       </Link>
                       <button
                         onClick={handleSignOut}
                         className="w-full flex items-center gap-3 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                       >
                         <LogOut className="w-4 h-4" />
-                        Sign Out
+                        {t('nav.signOut')}
                       </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Language Selector (Desktop) */}
+            <div className="relative hidden md:block" ref={langMenuRef}>
+              <button
+                onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
+                className={`flex items-center gap-1 p-2 rounded-full transition-colors ${
+                  showDarkNav
+                    ? 'text-olive-700 hover:bg-olive-100'
+                    : 'text-white hover:bg-white/10'
+                }`}
+              >
+                <Globe className="w-5 h-5" />
+                <span className="text-sm font-medium uppercase">{language}</span>
+              </button>
+              <AnimatePresence>
+                {isLangMenuOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute right-0 mt-2 w-40 bg-white rounded-xl shadow-xl border border-olive-100 overflow-hidden"
+                  >
+                    <div className="p-2">
+                      {languages.map((lang) => (
+                        <button
+                          key={lang.code}
+                          onClick={() => {
+                            setLanguage(lang.code);
+                            setIsLangMenuOpen(false);
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
+                            language === lang.code
+                              ? 'bg-olive-100 text-olive-800 font-medium'
+                              : 'text-olive-600 hover:bg-olive-50'
+                          }`}
+                        >
+                          {lang.name}
+                        </button>
+                      ))}
                     </div>
                   </motion.div>
                 )}
@@ -240,11 +307,18 @@ export default function Navbar() {
               {user ? (
                 <>
                   <Link
+                    href="/orders"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block py-3 px-4 text-olive-700 hover:bg-olive-50 rounded-lg font-medium transition-colors"
+                  >
+                    {t('nav.myOrders')}
+                  </Link>
+                  <Link
                     href="/admin"
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="block py-3 px-4 text-olive-700 hover:bg-olive-50 rounded-lg font-medium transition-colors"
                   >
-                    Admin Dashboard
+                    {t('nav.adminDashboard')}
                   </Link>
                   <button
                     onClick={() => {
@@ -253,7 +327,7 @@ export default function Navbar() {
                     }}
                     className="w-full text-left py-3 px-4 text-red-600 hover:bg-red-50 rounded-lg font-medium transition-colors"
                   >
-                    Sign Out
+                    {t('nav.signOut')}
                   </button>
                 </>
               ) : (
@@ -262,9 +336,29 @@ export default function Navbar() {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="block py-3 px-4 text-gold-600 hover:bg-gold-50 rounded-lg font-medium transition-colors"
                 >
-                  Sign In
+                  {t('nav.signIn')}
                 </Link>
               )}
+              <hr className="my-2 border-olive-100" />
+              {/* Language Selector (Mobile) */}
+              <div className="py-2 px-4">
+                <p className="text-sm text-olive-500 mb-2">Language</p>
+                <div className="flex flex-wrap gap-2">
+                  {languages.map((lang) => (
+                    <button
+                      key={lang.code}
+                      onClick={() => setLanguage(lang.code)}
+                      className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                        language === lang.code
+                          ? 'bg-olive-600 text-white'
+                          : 'bg-olive-100 text-olive-700 hover:bg-olive-200'
+                      }`}
+                    >
+                      {lang.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </motion.div>
         )}
