@@ -82,14 +82,34 @@ export function StoreSettingsProvider({ children }: { children: React.ReactNode 
   const updateSettings = async (updates: Partial<StoreSettings>) => {
     const supabase = createClient();
 
-    const { error } = await supabase
-      .from('store_settings')
-      .update(updates)
-      .eq('id', settings.id);
+    // If we have an existing settings ID, update it
+    if (settings.id) {
+      const { error } = await supabase
+        .from('store_settings')
+        .update(updates)
+        .eq('id', settings.id);
 
-    if (error) {
-      console.error('Error updating store settings:', error);
-      return { error };
+      if (error) {
+        console.error('Error updating store settings:', error);
+        return { error };
+      }
+    } else {
+      // No existing settings, insert a new row
+      const { data, error } = await supabase
+        .from('store_settings')
+        .insert(updates)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating store settings:', error);
+        return { error };
+      }
+
+      if (data) {
+        setSettings(data as StoreSettings);
+        return { error: null };
+      }
     }
 
     // Update local state
