@@ -3,20 +3,22 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
-import { products, categories } from '@/data/products';
+import { categories } from '@/data/products';
 import ProductCard from '@/components/ProductCard';
 import ProductShowcase from '@/components/ProductShowcase';
+import { useProducts } from '@/context/ProductContext';
 
 type SortOption = 'featured' | 'price-asc' | 'price-desc' | 'rating' | 'name';
 
 export default function ShopPage() {
+  const { state } = useProducts();
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('featured');
   const [showFilters, setShowFilters] = useState(false);
 
   const filteredProducts = useMemo(() => {
-    let result = [...products];
+    let result = [...state.products];
 
     // Filter by search
     if (search) {
@@ -53,7 +55,19 @@ export default function ShopPage() {
     }
 
     return result;
-  }, [search, selectedCategory, sortBy]);
+  }, [search, selectedCategory, sortBy, state.products]);
+
+  const priceRange = useMemo(() => {
+    if (state.products.length === 0) {
+      return null;
+    }
+
+    const prices = state.products.map((p) => p.price);
+    return {
+      min: Math.min(...prices),
+      max: Math.max(...prices),
+    };
+  }, [state.products]);
 
   return (
     <div className="min-h-screen bg-olive-50 pt-24">
@@ -173,8 +187,9 @@ export default function ShopPage() {
                   Price Range
                 </h3>
                 <p className="text-olive-600 text-sm">
-                  ${Math.min(...products.map((p) => p.price)).toFixed(2)} -{' '}
-                  ${Math.max(...products.map((p) => p.price)).toFixed(2)}
+                  {priceRange
+                    ? `$${priceRange.min.toFixed(2)} - $${priceRange.max.toFixed(2)}`
+                    : '—'}
                 </p>
               </div>
 
@@ -197,7 +212,9 @@ export default function ShopPage() {
           <div className="flex-1">
             {/* Results Count */}
             <p className="text-olive-600 mb-6">
-              Showing {filteredProducts.length} of {products.length} products
+              {state.isLoading
+                ? 'Loading products…'
+                : `Showing ${filteredProducts.length} of ${state.products.length} products`}
             </p>
 
             {filteredProducts.length > 0 ? (
@@ -209,7 +226,9 @@ export default function ShopPage() {
             ) : (
               <div className="text-center py-16">
                 <p className="text-olive-600 text-lg">
-                  No products found matching your criteria.
+                  {state.isLoading
+                    ? 'Loading products…'
+                    : 'No products found matching your criteria.'}
                 </p>
                 <button
                   onClick={() => {

@@ -3,11 +3,12 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import { products } from '@/data/products';
+import { useProducts } from '@/context/ProductContext';
 import ProductCard from './ProductCard';
 
 export default function FeaturedProducts() {
-  const featuredProducts = products.filter((p) => p.featured).slice(0, 4);
+  const { state } = useProducts();
+  const featuredProducts = state.products.filter((p) => p.featured).slice(0, 4);
 
   return (
     <section className="py-24 bg-white">
@@ -34,9 +35,17 @@ export default function FeaturedProducts() {
 
         {/* Products Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {featuredProducts.map((product, index) => (
-            <ProductCard key={product.id} product={product} index={index} />
-          ))}
+          {featuredProducts.length > 0 ? (
+            featuredProducts.map((product, index) => (
+              <ProductCard key={product.id} product={product} index={index} />
+            ))
+          ) : (
+            <p className="text-olive-600 col-span-full text-center">
+              {state.isLoading
+                ? 'Loading featured products…'
+                : 'No featured products available yet.'}
+            </p>
+          )}
         </div>
 
         {/* View All Button */}

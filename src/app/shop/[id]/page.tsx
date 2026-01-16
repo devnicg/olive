@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -17,16 +17,29 @@ import {
   Shield,
   Award,
 } from 'lucide-react';
-import { products } from '@/data/products';
 import { useCart } from '@/context/CartContext';
 import ProductCard from '@/components/ProductCard';
+import { useProducts } from '@/context/ProductContext';
 
 export default function ProductPage() {
   const params = useParams();
   const { addToCart } = useCart();
+  const { state } = useProducts();
   const [quantity, setQuantity] = useState(1);
 
-  const product = products.find((p) => p.id === params.id);
+  const productId = Array.isArray(params.id) ? params.id[0] : params.id;
+  const product = useMemo(
+    () => state.products.find((p) => p.id === productId),
+    [state.products, productId]
+  );
+
+  if (!product && state.isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center pt-20">
+        <div className="text-center text-olive-600">Loading product…</div>
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -43,7 +56,7 @@ export default function ProductPage() {
     );
   }
 
-  const relatedProducts = products
+  const relatedProducts = state.products
     .filter((p) => p.category === product.category && p.id !== product.id)
     .slice(0, 4);
 
