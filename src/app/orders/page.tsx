@@ -23,16 +23,10 @@ import {
   ShoppingBag,
   MapPin,
   RefreshCw,
-<<<<<<< HEAD
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import type { Database } from "@/types/database";
-=======
-} from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
-import { useAuth } from '@/context/AuthContext';
->>>>>>> 60b07578e8ba6fd37b7b38231b828b4c926e2e6c
 
 interface OrderItem {
   product_id: string;
