@@ -1,11 +1,17 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Search, Mail, MapPin, Users, ShoppingBag, RefreshCw } from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import {
+  Search,
+  Mail,
+  MapPin,
+  Users,
+  ShoppingBag,
+  RefreshCw,
+} from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
-<<<<<<< HEAD
 interface Profile {
   id: string;
   email: string;
@@ -13,8 +19,6 @@ interface Profile {
   created_at: string;
 }
 
-=======
->>>>>>> 60b07578e8ba6fd37b7b38231b828b4c926e2e6c
 interface Customer {
   id: string;
   email: string;
@@ -25,7 +29,7 @@ interface Customer {
 }
 
 export default function CustomersPage() {
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -35,36 +39,29 @@ export default function CustomersPage() {
 
       // Fetch profiles
       const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, email, full_name, created_at')
-        .order('created_at', { ascending: false });
+        .from("profiles")
+        .select("id, email, full_name, created_at")
+        .order("created_at", { ascending: false });
 
-<<<<<<< HEAD
       if (profiles && profiles.length > 0) {
         // Fetch order stats for each customer
         const customersWithStats = await Promise.all(
           (profiles as Profile[]).map(async (profile) => {
-=======
-      if (profiles) {
-        // Fetch order stats for each customer
-        const customersWithStats = await Promise.all(
-          profiles.map(async (profile) => {
->>>>>>> 60b07578e8ba6fd37b7b38231b828b4c926e2e6c
             const { data: orders } = await supabase
-              .from('orders')
-              .select('total')
-              .eq('user_id', profile.id);
+              .from("orders")
+              .select("total")
+              .eq("user_id", profile.id);
 
             const orderCount = orders?.length || 0;
-<<<<<<< HEAD
-            const totalSpent = orders?.reduce((sum, order) => sum + ((order as { total: number }).total || 0), 0) || 0;
-=======
-            const totalSpent = orders?.reduce((sum, order) => sum + (order.total || 0), 0) || 0;
->>>>>>> 60b07578e8ba6fd37b7b38231b828b4c926e2e6c
+            const totalSpent =
+              orders?.reduce(
+                (sum, order) => sum + ((order as { total: number }).total || 0),
+                0
+              ) || 0;
 
             return {
               id: profile.id,
-              email: profile.email || '',
+              email: profile.email || "",
               full_name: profile.full_name,
               created_at: profile.created_at,
               orders: orderCount,
@@ -84,8 +81,9 @@ export default function CustomersPage() {
 
   const filteredCustomers = customers.filter(
     (customer) =>
-      (customer.full_name?.toLowerCase() || '').includes(search.toLowerCase()) ||
-      customer.email.toLowerCase().includes(search.toLowerCase())
+      (customer.full_name?.toLowerCase() || "").includes(
+        search.toLowerCase()
+      ) || customer.email.toLowerCase().includes(search.toLowerCase())
   );
 
   const totalCustomers = customers.length;
@@ -108,7 +106,9 @@ export default function CustomersPage() {
     <div className="p-6 lg:p-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-serif font-bold text-olive-800">Customers</h1>
+        <h1 className="text-3xl font-serif font-bold text-olive-800">
+          Customers
+        </h1>
         <p className="text-olive-600 mt-1">
           View and manage your customer base
         </p>
@@ -127,7 +127,9 @@ export default function CustomersPage() {
             </div>
             <div>
               <p className="text-olive-500 text-sm">Total Customers</p>
-              <p className="text-2xl font-bold text-olive-800">{totalCustomers}</p>
+              <p className="text-2xl font-bold text-olive-800">
+                {totalCustomers}
+              </p>
             </div>
           </div>
         </motion.div>
@@ -195,7 +197,9 @@ export default function CustomersPage() {
               <div className="flex items-start justify-between mb-4">
                 <div className="w-12 h-12 bg-gold-100 rounded-full flex items-center justify-center">
                   <span className="text-gold-600 font-bold text-lg">
-                    {(customer.full_name || customer.email).charAt(0).toUpperCase()}
+                    {(customer.full_name || customer.email)
+                      .charAt(0)
+                      .toUpperCase()}
                   </span>
                 </div>
                 <span className="text-sm text-olive-500">
@@ -204,7 +208,7 @@ export default function CustomersPage() {
               </div>
 
               <h3 className="text-lg font-semibold text-olive-800 mb-2">
-                {customer.full_name || 'No name'}
+                {customer.full_name || "No name"}
               </h3>
 
               <div className="space-y-2 mb-4">
@@ -217,7 +221,9 @@ export default function CustomersPage() {
               <div className="pt-4 border-t border-olive-100 flex justify-between">
                 <div>
                   <p className="text-sm text-olive-500">Orders</p>
-                  <p className="font-semibold text-olive-800">{customer.orders}</p>
+                  <p className="font-semibold text-olive-800">
+                    {customer.orders}
+                  </p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-olive-500">Total Spent</p>
@@ -233,7 +239,9 @@ export default function CustomersPage() {
         <div className="bg-white rounded-2xl p-12 text-center shadow-lg">
           <Users className="w-12 h-12 text-olive-300 mx-auto mb-4" />
           <p className="text-olive-600">
-            {search ? 'No customers found matching your search' : 'No customers yet'}
+            {search
+              ? "No customers found matching your search"
+              : "No customers yet"}
           </p>
         </div>
       )}
