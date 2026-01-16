@@ -16,6 +16,25 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   is_admin BOOLEAN DEFAULT FALSE NOT NULL
 );
 
+-- Create profile_addresses table (saved shipping addresses)
+CREATE TABLE IF NOT EXISTS public.profile_addresses (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  label TEXT,
+  first_name TEXT NOT NULL,
+  last_name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  phone TEXT,
+  address TEXT NOT NULL,
+  city TEXT NOT NULL,
+  state TEXT NOT NULL,
+  zip TEXT NOT NULL,
+  country TEXT NOT NULL,
+  is_default BOOLEAN DEFAULT FALSE NOT NULL
+);
+
 -- Create products table
 CREATE TABLE IF NOT EXISTS public.products (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
@@ -102,6 +121,7 @@ CREATE TABLE IF NOT EXISTS public.product_showcase (
 
 -- Enable Row Level Security
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.profile_addresses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
@@ -117,6 +137,27 @@ CREATE POLICY "Users can view their own profile"
 CREATE POLICY "Users can update their own profile"
   ON public.profiles FOR UPDATE
   USING (auth.uid() = id);
+
+-- Profile addresses policies
+CREATE POLICY "Users can view their own addresses"
+  ON public.profile_addresses FOR SELECT
+  TO authenticated
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can add their own addresses"
+  ON public.profile_addresses FOR INSERT
+  TO authenticated
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own addresses"
+  ON public.profile_addresses FOR UPDATE
+  TO authenticated
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own addresses"
+  ON public.profile_addresses FOR DELETE
+  TO authenticated
+  USING (auth.uid() = user_id);
 
 -- Products policies (public read, admin write)
 CREATE POLICY "Anyone can view products"
@@ -302,6 +343,10 @@ $$ LANGUAGE plpgsql;
 -- Triggers for updated_at
 CREATE TRIGGER update_profiles_updated_at
   BEFORE UPDATE ON public.profiles
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+
+CREATE TRIGGER update_profile_addresses_updated_at
+  BEFORE UPDATE ON public.profile_addresses
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
 
 CREATE TRIGGER update_products_updated_at

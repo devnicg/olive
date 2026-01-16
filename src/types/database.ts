@@ -165,6 +165,60 @@ export interface Database {
         };
         Relationships: [];
       };
+      profile_addresses: {
+        Row: {
+          id: string;
+          created_at: string;
+          updated_at: string;
+          user_id: string;
+          label: string | null;
+          first_name: string;
+          last_name: string;
+          email: string;
+          phone: string | null;
+          address: string;
+          city: string;
+          state: string;
+          zip: string;
+          country: string;
+          is_default: boolean;
+        };
+        Insert: {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          user_id: string;
+          label?: string | null;
+          first_name: string;
+          last_name: string;
+          email: string;
+          phone?: string | null;
+          address: string;
+          city: string;
+          state: string;
+          zip: string;
+          country: string;
+          is_default?: boolean;
+        };
+        Update: {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          user_id?: string;
+          label?: string | null;
+          first_name?: string;
+          last_name?: string;
+          email?: string;
+          phone?: string | null;
+          address?: string;
+          city?: string;
+          state?: string;
+          zip?: string;
+          country?: string;
+          is_default?: boolean;
+        };
+        Relationships: [];
+      };
       product_showcase: {
         Row: {
           id: string;
