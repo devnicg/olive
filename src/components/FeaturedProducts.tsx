@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
-import { useProducts } from '@/context/ProductContext';
-import ProductCard from './ProductCard';
+import { motion } from "framer-motion";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import { useProducts } from "@/context/ProductContext";
+import ProductCard from "./ProductCard";
 
 export default function FeaturedProducts() {
   const { state } = useProducts();
@@ -42,8 +42,8 @@ export default function FeaturedProducts() {
           ) : (
             <p className="text-olive-600 col-span-full text-center">
               {state.isLoading
-                ? 'Loading featured products…'
-                : 'No featured products available yet.'}
+                ? "Loading featured products…"
+                : "No featured products available yet."}
             </p>
           )}
         </div>

@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useMemo, useState } from 'react';
-import { useParams } from 'next/navigation';
-import Image from 'next/image';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { useMemo, useState } from "react";
+import { useParams } from "next/navigation";
+import Image from "next/image";
+import Link from "next/link";
+import { motion } from "framer-motion";
 import {
   Star,
   Minus,
@@ -16,10 +16,10 @@ import {
   Truck,
   Shield,
   Award,
-} from 'lucide-react';
-import { useCart } from '@/context/CartContext';
-import ProductCard from '@/components/ProductCard';
-import { useProducts } from '@/context/ProductContext';
+} from "lucide-react";
+import { useCart } from "@/context/CartContext";
+import ProductCard from "@/components/ProductCard";
+import { useProducts } from "@/context/ProductContext";
 
 export default function ProductPage() {
   const params = useParams();
@@ -127,7 +127,7 @@ export default function ProductPage() {
           >
             {/* Category */}
             <span className="text-sm font-medium text-gold-600 uppercase tracking-wider">
-              {product.category.replace('-', ' ')}
+              {product.category.replace("-", " ")}
             </span>
 
             {/* Title */}
@@ -143,8 +143,8 @@ export default function ProductPage() {
                     key={i}
                     className={`w-5 h-5 ${
                       i < Math.floor(product.rating)
-                        ? 'text-gold-400 fill-gold-400'
-                        : 'text-gray-300'
+                        ? "text-gold-400 fill-gold-400"
+                        : "text-gray-300"
                     }`}
                   />
                 ))}
@@ -206,7 +206,7 @@ export default function ProductPage() {
                 className="flex-1 flex items-center justify-center gap-2 px-8 py-4 bg-gold-500 hover:bg-gold-600 text-white font-semibold rounded-full transition-colors shadow-lg shadow-gold-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ShoppingCart className="w-5 h-5" />
-                {product.inStock ? 'Add to Cart' : 'Out of Stock'}
+                {product.inStock ? "Add to Cart" : "Out of Stock"}
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -227,11 +227,14 @@ export default function ProductPage() {
             {/* Trust Badges */}
             <div className="mt-8 pt-8 border-t border-olive-200 grid grid-cols-3 gap-4">
               {[
-                { icon: Truck, text: 'Free Shipping' },
-                { icon: Shield, text: 'Secure Payment' },
-                { icon: Award, text: 'Quality Guarantee' },
+                { icon: Truck, text: "Free Shipping" },
+                { icon: Shield, text: "Secure Payment" },
+                { icon: Award, text: "Quality Guarantee" },
               ].map((item, index) => (
-                <div key={index} className="flex flex-col items-center text-center">
+                <div
+                  key={index}
+                  className="flex flex-col items-center text-center"
+                >
                   <item.icon className="w-6 h-6 text-gold-500 mb-2" />
                   <span className="text-xs text-olive-600">{item.text}</span>
                 </div>

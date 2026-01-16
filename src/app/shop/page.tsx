@@ -1,20 +1,20 @@
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { Search, SlidersHorizontal, X } from 'lucide-react';
-import { categories } from '@/data/products';
-import ProductCard from '@/components/ProductCard';
-import ProductShowcase from '@/components/ProductShowcase';
-import { useProducts } from '@/context/ProductContext';
+import { useState, useMemo } from "react";
+import { motion } from "framer-motion";
+import { Search, SlidersHorizontal, X } from "lucide-react";
+import { categories } from "@/data/products";
+import ProductCard from "@/components/ProductCard";
+import ProductShowcase from "@/components/ProductShowcase";
+import { useProducts } from "@/context/ProductContext";
 
-type SortOption = 'featured' | 'price-asc' | 'price-desc' | 'rating' | 'name';
+type SortOption = "featured" | "price-asc" | "price-desc" | "rating" | "name";
 
 export default function ShopPage() {
   const { state } = useProducts();
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<SortOption>('featured');
+  const [sortBy, setSortBy] = useState<SortOption>("featured");
   const [showFilters, setShowFilters] = useState(false);
 
   const filteredProducts = useMemo(() => {
@@ -37,19 +37,19 @@ export default function ShopPage() {
 
     // Sort
     switch (sortBy) {
-      case 'price-asc':
+      case "price-asc":
         result.sort((a, b) => a.price - b.price);
         break;
-      case 'price-desc':
+      case "price-desc":
         result.sort((a, b) => b.price - a.price);
         break;
-      case 'rating':
+      case "rating":
         result.sort((a, b) => b.rating - a.rating);
         break;
-      case 'name':
+      case "name":
         result.sort((a, b) => a.name.localeCompare(b.name));
         break;
-      case 'featured':
+      case "featured":
       default:
         result.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
     }
@@ -108,7 +108,7 @@ export default function ShopPage() {
             />
             {search && (
               <button
-                onClick={() => setSearch('')}
+                onClick={() => setSearch("")}
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-olive-400 hover:text-olive-600"
               >
                 <X className="w-5 h-5" />
@@ -144,11 +144,11 @@ export default function ShopPage() {
           <motion.aside
             initial={false}
             animate={{
-              width: showFilters ? 'auto' : 0,
+              width: showFilters ? "auto" : 0,
               opacity: showFilters ? 1 : 0,
             }}
             className={`lg:!w-64 lg:!opacity-100 overflow-hidden ${
-              showFilters ? 'block' : 'hidden lg:block'
+              showFilters ? "block" : "hidden lg:block"
             }`}
           >
             <div className="bg-white rounded-2xl p-6 shadow-lg sticky top-28">
@@ -160,8 +160,8 @@ export default function ShopPage() {
                   onClick={() => setSelectedCategory(null)}
                   className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
                     !selectedCategory
-                      ? 'bg-gold-100 text-gold-700 font-medium'
-                      : 'text-olive-600 hover:bg-olive-50'
+                      ? "bg-gold-100 text-gold-700 font-medium"
+                      : "text-olive-600 hover:bg-olive-50"
                   }`}
                 >
                   All Products
@@ -172,8 +172,8 @@ export default function ShopPage() {
                     onClick={() => setSelectedCategory(category.id)}
                     className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
                       selectedCategory === category.id
-                        ? 'bg-gold-100 text-gold-700 font-medium'
-                        : 'text-olive-600 hover:bg-olive-50'
+                        ? "bg-gold-100 text-gold-700 font-medium"
+                        : "text-olive-600 hover:bg-olive-50"
                     }`}
                   >
                     {category.name}
@@ -188,8 +188,10 @@ export default function ShopPage() {
                 </h3>
                 <p className="text-olive-600 text-sm">
                   {priceRange
-                    ? `$${priceRange.min.toFixed(2)} - $${priceRange.max.toFixed(2)}`
-                    : '—'}
+                    ? `$${priceRange.min.toFixed(
+                        2
+                      )} - $${priceRange.max.toFixed(2)}`
+                    : "—"}
                 </p>
               </div>
 
@@ -198,7 +200,7 @@ export default function ShopPage() {
                 <button
                   onClick={() => {
                     setSelectedCategory(null);
-                    setSearch('');
+                    setSearch("");
                   }}
                   className="mt-6 w-full py-2 text-red-500 hover:text-red-600 text-sm font-medium transition-colors"
                 >
@@ -213,27 +215,31 @@ export default function ShopPage() {
             {/* Results Count */}
             <p className="text-olive-600 mb-6">
               {state.isLoading
-                ? 'Loading products…'
+                ? "Loading products…"
                 : `Showing ${filteredProducts.length} of ${state.products.length} products`}
             </p>
 
             {filteredProducts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                 {filteredProducts.map((product, index) => (
-                  <ProductCard key={product.id} product={product} index={index} />
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    index={index}
+                  />
                 ))}
               </div>
             ) : (
               <div className="text-center py-16">
                 <p className="text-olive-600 text-lg">
                   {state.isLoading
-                    ? 'Loading products…'
-                    : 'No products found matching your criteria.'}
+                    ? "Loading products…"
+                    : "No products found matching your criteria."}
                 </p>
                 <button
                   onClick={() => {
                     setSelectedCategory(null);
-                    setSearch('');
+                    setSearch("");
                   }}
                   className="mt-4 text-gold-600 hover:text-gold-700 font-medium"
                 >
