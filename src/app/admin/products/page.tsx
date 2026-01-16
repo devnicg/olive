@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import Image from 'next/image';
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import {
   Plus,
   Search,
@@ -13,19 +13,20 @@ import {
   Package,
   Star,
   AlertCircle,
-} from 'lucide-react';
-import { useProducts } from '@/context/ProductContext';
-import type { Product } from '@/types/product';
+} from "lucide-react";
+import { useProducts } from "@/context/ProductContext";
+import type { Product } from "@/types/product";
 
-type ModalMode = 'add' | 'edit' | null;
+type ModalMode = "add" | "edit" | null;
 
-const emptyProduct: Omit<Product, 'id'> = {
-  name: '',
-  description: '',
+const emptyProduct: Omit<Product, "id"> = {
+  name: "",
+  description: "",
   price: 0,
-  image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=800&q=80',
-  category: 'extra-virgin',
-  size: '500ml',
+  image:
+    "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=800&q=80",
+  category: "extra-virgin",
+  size: "500ml",
   inStock: true,
   featured: false,
   rating: 4.5,
@@ -33,10 +34,13 @@ const emptyProduct: Omit<Product, 'id'> = {
 };
 
 export default function ProductsPage() {
-  const { state, addProduct, updateProduct, deleteProduct, refreshProducts } = useProducts();
-  const [search, setSearch] = useState('');
+  const { state, addProduct, updateProduct, deleteProduct, refreshProducts } =
+    useProducts();
+  const [search, setSearch] = useState("");
   const [modalMode, setModalMode] = useState<ModalMode>(null);
-  const [currentProduct, setCurrentProduct] = useState<Product | Omit<Product, 'id'>>(emptyProduct);
+  const [currentProduct, setCurrentProduct] = useState<
+    Product | Omit<Product, "id">
+  >(emptyProduct);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -48,21 +52,21 @@ export default function ProductsPage() {
 
   const handleOpenAdd = () => {
     setCurrentProduct(emptyProduct);
-    setModalMode('add');
+    setModalMode("add");
   };
 
   const handleOpenEdit = (product: Product) => {
     setCurrentProduct(product);
-    setModalMode('edit');
+    setModalMode("edit");
   };
 
   const handleSave = async () => {
     setIsSaving(true);
 
     try {
-      if (modalMode === 'add') {
-        await addProduct(currentProduct as Omit<Product, 'id'>);
-      } else if (modalMode === 'edit' && 'id' in currentProduct) {
+      if (modalMode === "add") {
+        await addProduct(currentProduct as Omit<Product, "id">);
+      } else if (modalMode === "edit" && "id" in currentProduct) {
         await updateProduct(currentProduct as Product);
       }
       setModalMode(null);
@@ -81,7 +85,9 @@ export default function ProductsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-serif font-bold text-olive-800">Products</h1>
+          <h1 className="text-3xl font-serif font-bold text-olive-800">
+            Products
+          </h1>
           <p className="text-olive-600 mt-1">
             Manage your product catalog ({state.products.length} products)
           </p>
@@ -123,7 +129,7 @@ export default function ProductsPage() {
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
         <div className="p-4 border-b border-olive-100 flex items-center justify-between">
           <p className="text-sm text-olive-600">
-            {state.isLoading ? 'Loading products…' : 'Products'}
+            {state.isLoading ? "Loading products…" : "Products"}
           </p>
           <button
             onClick={() => refreshProducts()}
@@ -158,7 +164,10 @@ export default function ProductsPage() {
             </thead>
             <tbody className="divide-y divide-olive-100">
               {filteredProducts.map((product) => (
-                <tr key={product.id} className="hover:bg-olive-50/50 transition-colors">
+                <tr
+                  key={product.id}
+                  className="hover:bg-olive-50/50 transition-colors"
+                >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">
                       <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-olive-100">
@@ -179,7 +188,7 @@ export default function ProductsPage() {
                   </td>
                   <td className="px-6 py-4">
                     <span className="px-3 py-1 bg-olive-100 text-olive-600 text-sm rounded-full capitalize">
-                      {product.category.replace('-', ' ')}
+                      {product.category.replace("-", " ")}
                     </span>
                   </td>
                   <td className="px-6 py-4 font-semibold text-olive-800">
@@ -189,11 +198,11 @@ export default function ProductsPage() {
                     <span
                       className={`px-3 py-1 text-sm rounded-full ${
                         product.inStock
-                          ? 'bg-green-100 text-green-600'
-                          : 'bg-red-100 text-red-600'
+                          ? "bg-green-100 text-green-600"
+                          : "bg-red-100 text-red-600"
                       }`}
                     >
-                      {product.inStock ? 'In Stock' : 'Out of Stock'}
+                      {product.inStock ? "In Stock" : "Out of Stock"}
                     </span>
                   </td>
                   <td className="px-6 py-4">
@@ -228,7 +237,7 @@ export default function ProductsPage() {
           <div className="p-12 text-center">
             <Package className="w-12 h-12 text-olive-300 mx-auto mb-4" />
             <p className="text-olive-600">
-              {state.isLoading ? 'Loading…' : 'No products found'}
+              {state.isLoading ? "Loading…" : "No products found"}
             </p>
           </div>
         )}
@@ -253,7 +262,7 @@ export default function ProductsPage() {
             >
               <div className="p-6 border-b border-olive-100 flex items-center justify-between">
                 <h2 className="text-xl font-serif font-bold text-olive-800">
-                  {modalMode === 'add' ? 'Add New Product' : 'Edit Product'}
+                  {modalMode === "add" ? "Add New Product" : "Edit Product"}
                 </h2>
                 <button
                   onClick={() => setModalMode(null)}
@@ -272,7 +281,10 @@ export default function ProductsPage() {
                     type="text"
                     value={currentProduct.name}
                     onChange={(e) =>
-                      setCurrentProduct({ ...currentProduct, name: e.target.value })
+                      setCurrentProduct({
+                        ...currentProduct,
+                        name: e.target.value,
+                      })
                     }
                     className="w-full px-4 py-3 rounded-xl border border-olive-200 focus:border-gold-400 focus:ring-2 focus:ring-gold-400/20 outline-none transition-all"
                   />
@@ -286,7 +298,10 @@ export default function ProductsPage() {
                     rows={3}
                     value={currentProduct.description}
                     onChange={(e) =>
-                      setCurrentProduct({ ...currentProduct, description: e.target.value })
+                      setCurrentProduct({
+                        ...currentProduct,
+                        description: e.target.value,
+                      })
                     }
                     className="w-full px-4 py-3 rounded-xl border border-olive-200 focus:border-gold-400 focus:ring-2 focus:ring-gold-400/20 outline-none transition-all resize-none"
                   />
@@ -319,7 +334,10 @@ export default function ProductsPage() {
                       type="text"
                       value={currentProduct.size}
                       onChange={(e) =>
-                        setCurrentProduct({ ...currentProduct, size: e.target.value })
+                        setCurrentProduct({
+                          ...currentProduct,
+                          size: e.target.value,
+                        })
                       }
                       className="w-full px-4 py-3 rounded-xl border border-olive-200 focus:border-gold-400 focus:ring-2 focus:ring-gold-400/20 outline-none transition-all"
                     />
@@ -336,7 +354,7 @@ export default function ProductsPage() {
                       onChange={(e) =>
                         setCurrentProduct({
                           ...currentProduct,
-                          category: e.target.value as Product['category'],
+                          category: e.target.value as Product["category"],
                         })
                       }
                       className="w-full px-4 py-3 rounded-xl border border-olive-200 focus:border-gold-400 focus:ring-2 focus:ring-gold-400/20 outline-none transition-all bg-white"
@@ -355,7 +373,10 @@ export default function ProductsPage() {
                       type="url"
                       value={currentProduct.image}
                       onChange={(e) =>
-                        setCurrentProduct({ ...currentProduct, image: e.target.value })
+                        setCurrentProduct({
+                          ...currentProduct,
+                          image: e.target.value,
+                        })
                       }
                       className="w-full px-4 py-3 rounded-xl border border-olive-200 focus:border-gold-400 focus:ring-2 focus:ring-gold-400/20 outline-none transition-all"
                     />
@@ -368,7 +389,10 @@ export default function ProductsPage() {
                       type="checkbox"
                       checked={currentProduct.inStock}
                       onChange={(e) =>
-                        setCurrentProduct({ ...currentProduct, inStock: e.target.checked })
+                        setCurrentProduct({
+                          ...currentProduct,
+                          inStock: e.target.checked,
+                        })
                       }
                       className="w-5 h-5 rounded border-olive-300 text-gold-500 focus:ring-gold-400"
                     />
@@ -379,7 +403,10 @@ export default function ProductsPage() {
                       type="checkbox"
                       checked={currentProduct.featured}
                       onChange={(e) =>
-                        setCurrentProduct({ ...currentProduct, featured: e.target.checked })
+                        setCurrentProduct({
+                          ...currentProduct,
+                          featured: e.target.checked,
+                        })
                       }
                       className="w-5 h-5 rounded border-olive-300 text-gold-500 focus:ring-gold-400"
                     />
@@ -404,10 +431,10 @@ export default function ProductsPage() {
                 >
                   <Save className="w-5 h-5" />
                   {isSaving
-                    ? 'Saving…'
-                    : modalMode === 'add'
-                      ? 'Add Product'
-                      : 'Save Changes'}
+                    ? "Saving…"
+                    : modalMode === "add"
+                    ? "Add Product"
+                    : "Save Changes"}
                 </motion.button>
               </div>
             </motion.div>
@@ -440,7 +467,8 @@ export default function ProductsPage() {
                   Delete Product?
                 </h3>
                 <p className="text-olive-600 mb-6">
-                  This action cannot be undone. The product will be permanently removed.
+                  This action cannot be undone. The product will be permanently
+                  removed.
                 </p>
                 <div className="flex gap-4">
                   <button

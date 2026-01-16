@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import type { Product } from '@/types/product';
+import React, { createContext, useContext, useReducer, useEffect } from "react";
+import type { Product } from "@/types/product";
 
 export interface CartItem {
   product: Product;
@@ -14,13 +14,13 @@ interface CartState {
 }
 
 type CartAction =
-  | { type: 'ADD_ITEM'; payload: Product }
-  | { type: 'REMOVE_ITEM'; payload: string }
-  | { type: 'UPDATE_QUANTITY'; payload: { id: string; quantity: number } }
-  | { type: 'CLEAR_CART' }
-  | { type: 'TOGGLE_CART' }
-  | { type: 'CLOSE_CART' }
-  | { type: 'LOAD_CART'; payload: CartItem[] };
+  | { type: "ADD_ITEM"; payload: Product }
+  | { type: "REMOVE_ITEM"; payload: string }
+  | { type: "UPDATE_QUANTITY"; payload: { id: string; quantity: number } }
+  | { type: "CLEAR_CART" }
+  | { type: "TOGGLE_CART" }
+  | { type: "CLOSE_CART" }
+  | { type: "LOAD_CART"; payload: CartItem[] };
 
 const CartContext = createContext<{
   state: CartState;
@@ -37,7 +37,7 @@ const CartContext = createContext<{
 
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
-    case 'ADD_ITEM': {
+    case "ADD_ITEM": {
       const existingItem = state.items.find(
         (item) => item.product.id === action.payload.id
       );
@@ -56,12 +56,12 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         items: [...state.items, { product: action.payload, quantity: 1 }],
       };
     }
-    case 'REMOVE_ITEM':
+    case "REMOVE_ITEM":
       return {
         ...state,
         items: state.items.filter((item) => item.product.id !== action.payload),
       };
-    case 'UPDATE_QUANTITY':
+    case "UPDATE_QUANTITY":
       if (action.payload.quantity <= 0) {
         return {
           ...state,
@@ -78,13 +78,13 @@ function cartReducer(state: CartState, action: CartAction): CartState {
             : item
         ),
       };
-    case 'CLEAR_CART':
+    case "CLEAR_CART":
       return { ...state, items: [] };
-    case 'TOGGLE_CART':
+    case "TOGGLE_CART":
       return { ...state, isOpen: !state.isOpen };
-    case 'CLOSE_CART':
+    case "CLOSE_CART":
       return { ...state, isOpen: false };
-    case 'LOAD_CART':
+    case "LOAD_CART":
       return { ...state, items: action.payload };
     default:
       return state;
@@ -98,43 +98,43 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   });
 
   useEffect(() => {
-    const savedCart = localStorage.getItem('oliveoil-cart');
+    const savedCart = localStorage.getItem("oliveoil-cart");
     if (savedCart) {
       try {
         const parsed = JSON.parse(savedCart);
-        dispatch({ type: 'LOAD_CART', payload: parsed });
+        dispatch({ type: "LOAD_CART", payload: parsed });
       } catch (e) {
-        console.error('Failed to load cart from storage');
+        console.error("Failed to load cart from storage");
       }
     }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('oliveoil-cart', JSON.stringify(state.items));
+    localStorage.setItem("oliveoil-cart", JSON.stringify(state.items));
   }, [state.items]);
 
   const addToCart = (product: Product) => {
-    dispatch({ type: 'ADD_ITEM', payload: product });
+    dispatch({ type: "ADD_ITEM", payload: product });
   };
 
   const removeFromCart = (productId: string) => {
-    dispatch({ type: 'REMOVE_ITEM', payload: productId });
+    dispatch({ type: "REMOVE_ITEM", payload: productId });
   };
 
   const updateQuantity = (productId: string, quantity: number) => {
-    dispatch({ type: 'UPDATE_QUANTITY', payload: { id: productId, quantity } });
+    dispatch({ type: "UPDATE_QUANTITY", payload: { id: productId, quantity } });
   };
 
   const clearCart = () => {
-    dispatch({ type: 'CLEAR_CART' });
+    dispatch({ type: "CLEAR_CART" });
   };
 
   const toggleCart = () => {
-    dispatch({ type: 'TOGGLE_CART' });
+    dispatch({ type: "TOGGLE_CART" });
   };
 
   const closeCart = () => {
-    dispatch({ type: 'CLOSE_CART' });
+    dispatch({ type: "CLOSE_CART" });
   };
 
   const totalItems = state.items.reduce((sum, item) => sum + item.quantity, 0);
@@ -166,7 +166,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 export function useCart() {
   const context = useContext(CartContext);
   if (!context) {
-    throw new Error('useCart must be used within a CartProvider');
+    throw new Error("useCart must be used within a CartProvider");
   }
   return context;
 }

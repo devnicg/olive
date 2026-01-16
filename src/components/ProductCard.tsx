@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import Image from 'next/image';
-import Link from 'next/link';
-import { Star, ShoppingCart, Eye, Heart } from 'lucide-react';
-import type { Product } from '@/types/product';
-import { useCart } from '@/context/CartContext';
-import { useFavorites } from '@/context/FavoritesContext';
-import { useI18n } from '@/context/I18nContext';
+import { motion } from "framer-motion";
+import Image from "next/image";
+import Link from "next/link";
+import { Star, ShoppingCart, Eye, Heart } from "lucide-react";
+import type { Product } from "@/types/product";
+import { useCart } from "@/context/CartContext";
+import { useFavorites } from "@/context/FavoritesContext";
+import { useI18n } from "@/context/I18nContext";
 
 interface ProductCardProps {
   product: Product;
@@ -46,12 +46,12 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
         <div className="absolute top-4 left-4 flex flex-col gap-2">
           {product.featured && (
             <span className="px-3 py-1 bg-gold-500 text-white text-xs font-semibold rounded-full">
-              {t('product.featured')}
+              {t("product.featured")}
             </span>
           )}
           {!product.inStock && (
             <span className="px-3 py-1 bg-red-500 text-white text-xs font-semibold rounded-full">
-              {t('product.outOfStock')}
+              {t("product.outOfStock")}
             </span>
           )}
         </div>
@@ -66,8 +66,8 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
           <Heart
             className={`w-5 h-5 transition-colors ${
               isProductFavorite
-                ? 'text-red-500 fill-red-500'
-                : 'text-olive-400 hover:text-red-500'
+                ? "text-red-500 fill-red-500"
+                : "text-olive-400 hover:text-red-500"
             }`}
           />
         </motion.button>
@@ -99,7 +99,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
       <div className="p-5">
         {/* Category */}
         <span className="text-xs font-medium text-olive-500 uppercase tracking-wider">
-          {product.category.replace('-', ' ')}
+          {product.category.replace("-", " ")}
         </span>
 
         {/* Title */}
@@ -117,8 +117,8 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
                 key={i}
                 className={`w-4 h-4 ${
                   i < Math.floor(product.rating)
-                    ? 'text-gold-400 fill-gold-400'
-                    : 'text-gray-300'
+                    ? "text-gold-400 fill-gold-400"
+                    : "text-gray-300"
                 }`}
               />
             ))}
@@ -141,7 +141,7 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
             disabled={!product.inStock}
             className="px-4 py-2 bg-olive-600 hover:bg-olive-700 text-white text-sm font-medium rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {product.inStock ? t('product.addToCart') : t('product.outOfStock')}
+            {product.inStock ? t("product.addToCart") : t("product.outOfStock")}
           </motion.button>
         </div>
       </div>
