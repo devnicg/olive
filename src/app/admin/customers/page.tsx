@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Search, Mail, MapPin, Users, ShoppingBag, RefreshCw } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
+<<<<<<< HEAD
 interface Profile {
   id: string;
   email: string;
@@ -12,6 +13,8 @@ interface Profile {
   created_at: string;
 }
 
+=======
+>>>>>>> 60b07578e8ba6fd37b7b38231b828b4c926e2e6c
 interface Customer {
   id: string;
   email: string;
@@ -36,17 +39,28 @@ export default function CustomersPage() {
         .select('id, email, full_name, created_at')
         .order('created_at', { ascending: false });
 
+<<<<<<< HEAD
       if (profiles && profiles.length > 0) {
         // Fetch order stats for each customer
         const customersWithStats = await Promise.all(
           (profiles as Profile[]).map(async (profile) => {
+=======
+      if (profiles) {
+        // Fetch order stats for each customer
+        const customersWithStats = await Promise.all(
+          profiles.map(async (profile) => {
+>>>>>>> 60b07578e8ba6fd37b7b38231b828b4c926e2e6c
             const { data: orders } = await supabase
               .from('orders')
               .select('total')
               .eq('user_id', profile.id);
 
             const orderCount = orders?.length || 0;
+<<<<<<< HEAD
             const totalSpent = orders?.reduce((sum, order) => sum + ((order as { total: number }).total || 0), 0) || 0;
+=======
+            const totalSpent = orders?.reduce((sum, order) => sum + (order.total || 0), 0) || 0;
+>>>>>>> 60b07578e8ba6fd37b7b38231b828b4c926e2e6c
 
             return {
               id: profile.id,

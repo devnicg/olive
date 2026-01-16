@@ -40,14 +40,20 @@ export default function AdminDashboard() {
       const supabase = createClient();
 
       // Fetch recent orders
+<<<<<<< HEAD
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: orders } = await (supabase
         .from('orders') as any)
+=======
+      const { data: orders } = await supabase
+        .from('orders')
+>>>>>>> 60b07578e8ba6fd37b7b38231b828b4c926e2e6c
         .select('*')
         .order('created_at', { ascending: false })
         .limit(5);
 
       if (orders) {
+<<<<<<< HEAD
         setRecentOrders(orders as Order[]);
       }
 
@@ -64,6 +70,22 @@ export default function AdminDashboard() {
 
       if (allOrders) {
         const totalRevenue = (allOrders as { total: number }[]).reduce((sum, order) => sum + (order.total || 0), 0);
+=======
+        setRecentOrders(orders);
+      }
+
+      // Fetch stats
+      const { data: allOrders } = await supabase
+        .from('orders')
+        .select('total, status');
+
+      const { count: customerCount } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
+
+      if (allOrders) {
+        const totalRevenue = allOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+>>>>>>> 60b07578e8ba6fd37b7b38231b828b4c926e2e6c
         setStats({
           totalRevenue,
           totalOrders: allOrders.length,
