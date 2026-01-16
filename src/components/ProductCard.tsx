@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Star, ShoppingCart, Eye, Heart } from 'lucide-react';
-import { Product } from '@/data/products';
+import type { Product } from '@/types/product';
 import { useCart } from '@/context/CartContext';
 import { useFavorites } from '@/context/FavoritesContext';
 import { useI18n } from '@/context/I18nContext';

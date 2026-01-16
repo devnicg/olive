@@ -1,16 +1,5 @@
-export interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  image: string;
-  category: 'extra-virgin' | 'infused' | 'organic' | 'gift-sets';
-  size: string;
-  inStock: boolean;
-  featured?: boolean;
-  rating: number;
-  reviews: number;
-}
+export type { Product } from '@/types/product';
+import type { Product } from '@/types/product';
 
 export const products: Product[] = [
   {

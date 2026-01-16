@@ -15,7 +15,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { useProducts } from '@/context/ProductContext';
-import { Product } from '@/data/products';
+import type { Product } from '@/types/product';
 
 type ModalMode = 'add' | 'edit' | null;
 
@@ -33,11 +33,12 @@ const emptyProduct: Omit<Product, 'id'> = {
 };
 
 export default function ProductsPage() {
-  const { state, addProduct, updateProduct, deleteProduct } = useProducts();
+  const { state, addProduct, updateProduct, deleteProduct, refreshProducts } = useProducts();
   const [search, setSearch] = useState('');
   const [modalMode, setModalMode] = useState<ModalMode>(null);
   const [currentProduct, setCurrentProduct] = useState<Product | Omit<Product, 'id'>>(emptyProduct);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const filteredProducts = state.products.filter(
     (p) =>
@@ -55,17 +56,23 @@ export default function ProductsPage() {
     setModalMode('edit');
   };
 
-  const handleSave = () => {
-    if (modalMode === 'add') {
-      addProduct(currentProduct as Omit<Product, 'id'>);
-    } else if (modalMode === 'edit' && 'id' in currentProduct) {
-      updateProduct(currentProduct as Product);
+  const handleSave = async () => {
+    setIsSaving(true);
+
+    try {
+      if (modalMode === 'add') {
+        await addProduct(currentProduct as Omit<Product, 'id'>);
+      } else if (modalMode === 'edit' && 'id' in currentProduct) {
+        await updateProduct(currentProduct as Product);
+      }
+      setModalMode(null);
+    } finally {
+      setIsSaving(false);
     }
-    setModalMode(null);
   };
 
-  const handleDelete = (id: string) => {
-    deleteProduct(id);
+  const handleDelete = async (id: string) => {
+    await deleteProduct(id);
     setDeleteConfirm(null);
   };
 
@@ -90,6 +97,16 @@ export default function ProductsPage() {
         </motion.button>
       </div>
 
+      {state.error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3 text-red-700">
+          <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+          <div className="flex-1">
+            <p className="font-medium">Product operation failed</p>
+            <p className="text-sm opacity-90">{state.error}</p>
+          </div>
+        </div>
+      )}
+
       {/* Search */}
       <div className="relative mb-6">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-olive-400" />
@@ -104,6 +121,17 @@ export default function ProductsPage() {
 
       {/* Products Table */}
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div className="p-4 border-b border-olive-100 flex items-center justify-between">
+          <p className="text-sm text-olive-600">
+            {state.isLoading ? 'Loading products…' : 'Products'}
+          </p>
+          <button
+            onClick={() => refreshProducts()}
+            className="text-sm text-olive-600 hover:text-olive-800"
+          >
+            Refresh
+          </button>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-olive-50">
@@ -199,7 +227,9 @@ export default function ProductsPage() {
         {filteredProducts.length === 0 && (
           <div className="p-12 text-center">
             <Package className="w-12 h-12 text-olive-300 mx-auto mb-4" />
-            <p className="text-olive-600">No products found</p>
+            <p className="text-olive-600">
+              {state.isLoading ? 'Loading…' : 'No products found'}
+            </p>
           </div>
         )}
       </div>
@@ -369,10 +399,15 @@ export default function ProductsPage() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleSave}
+                  disabled={isSaving}
                   className="flex-1 flex items-center justify-center gap-2 py-3 bg-gold-500 hover:bg-gold-600 text-white font-semibold rounded-full transition-colors"
                 >
                   <Save className="w-5 h-5" />
-                  {modalMode === 'add' ? 'Add Product' : 'Save Changes'}
+                  {isSaving
+                    ? 'Saving…'
+                    : modalMode === 'add'
+                      ? 'Add Product'
+                      : 'Save Changes'}
                 </motion.button>
               </div>
             </motion.div>

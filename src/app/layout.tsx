@@ -5,6 +5,7 @@ import { CartProvider } from '@/context/CartContext';
 import { FavoritesProvider } from '@/context/FavoritesContext';
 import { StoreSettingsProvider } from '@/context/StoreSettingsContext';
 import { I18nProvider } from '@/context/I18nContext';
+import { ProductProvider } from '@/context/ProductContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import CartDrawer from '@/components/CartDrawer';
@@ -28,10 +29,12 @@ export default function RootLayout({
             <StoreSettingsProvider>
               <CartProvider>
                 <FavoritesProvider>
-                  <Navbar />
-                  <CartDrawer />
-                  <main>{children}</main>
-                  <Footer />
+                  <ProductProvider>
+                    <Navbar />
+                    <CartDrawer />
+                    <main>{children}</main>
+                    <Footer />
+                  </ProductProvider>
                 </FavoritesProvider>
               </CartProvider>
             </StoreSettingsProvider>

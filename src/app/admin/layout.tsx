@@ -18,7 +18,6 @@ import {
   User,
   Sparkles,
 } from 'lucide-react';
-import { ProductProvider } from '@/context/ProductContext';
 import { useAuth } from '@/context/AuthContext';
 
 const sidebarLinks = [
@@ -58,8 +57,7 @@ export default function AdminLayout({
   }
 
   return (
-    <ProductProvider>
-      <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50">
         {/* Mobile Header */}
         <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white shadow-sm z-40 flex items-center justify-between px-4">
           <Link href="/admin" className="flex items-center gap-2">
@@ -158,7 +156,6 @@ export default function AdminLayout({
         <main className="lg:ml-64 pt-16 lg:pt-0 min-h-screen">
           {children}
         </main>
-      </div>
-    </ProductProvider>
+    </div>
   );
 }
