@@ -5,6 +5,13 @@ import { motion } from 'framer-motion';
 import { Search, Mail, MapPin, Users, ShoppingBag, RefreshCw } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
+interface Profile {
+  id: string;
+  email: string;
+  full_name: string | null;
+  created_at: string;
+}
+
 interface Customer {
   id: string;
   email: string;
@@ -29,17 +36,17 @@ export default function CustomersPage() {
         .select('id, email, full_name, created_at')
         .order('created_at', { ascending: false });
 
-      if (profiles) {
+      if (profiles && profiles.length > 0) {
         // Fetch order stats for each customer
         const customersWithStats = await Promise.all(
-          profiles.map(async (profile) => {
+          (profiles as Profile[]).map(async (profile) => {
             const { data: orders } = await supabase
               .from('orders')
               .select('total')
               .eq('user_id', profile.id);
 
             const orderCount = orders?.length || 0;
-            const totalSpent = orders?.reduce((sum, order) => sum + (order.total || 0), 0) || 0;
+            const totalSpent = orders?.reduce((sum, order) => sum + ((order as { total: number }).total || 0), 0) || 0;
 
             return {
               id: profile.id,

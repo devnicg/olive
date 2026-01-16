@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import Image from 'next/image';
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import {
   Search,
   Eye,
@@ -17,8 +17,9 @@ import {
   Mail,
   Phone,
   RefreshCw,
-} from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
+} from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import type { Database } from "@/types/database";
 
 interface OrderItem {
   product_id: string;
@@ -40,28 +41,24 @@ interface ShippingAddress {
   country: string;
 }
 
-interface Order {
-  id: string;
-  created_at: string;
-  user_id: string | null;
-  status: 'pending' | 'processing' | 'shipped' | 'completed' | 'cancelled';
-  total: number;
+type DbOrderRow = Database["public"]["Tables"]["orders"]["Row"];
+type Order = Omit<DbOrderRow, "shipping_address" | "items"> & {
   shipping_address: ShippingAddress;
   items: OrderItem[];
-}
+};
 
 const statusConfig = {
-  pending: { color: 'bg-yellow-100 text-yellow-600', icon: Clock },
-  processing: { color: 'bg-blue-100 text-blue-600', icon: Package },
-  shipped: { color: 'bg-purple-100 text-purple-600', icon: Truck },
-  completed: { color: 'bg-green-100 text-green-600', icon: CheckCircle },
-  cancelled: { color: 'bg-red-100 text-red-600', icon: XCircle },
+  pending: { color: "bg-yellow-100 text-yellow-600", icon: Clock },
+  processing: { color: "bg-blue-100 text-blue-600", icon: Package },
+  shipped: { color: "bg-purple-100 text-purple-600", icon: Truck },
+  completed: { color: "bg-green-100 text-green-600", icon: CheckCircle },
+  cancelled: { color: "bg-red-100 text-red-600", icon: XCircle },
 };
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -71,14 +68,20 @@ export default function OrdersPage() {
     const supabase = createClient();
 
     const { data, error } = await supabase
-      .from('orders')
-      .select('*')
-      .order('created_at', { ascending: false });
+      .from("orders")
+      .select("*")
+      .order("created_at", { ascending: false });
 
     if (error) {
-      console.error('Error fetching orders:', error);
+      console.error("Error fetching orders:", error);
     } else {
-      setOrders(data as Order[]);
+      const normalizedOrders: Order[] = (data ?? []).map((row) => ({
+        ...row,
+        shipping_address: row.shipping_address as unknown as ShippingAddress,
+        items: row.items as unknown as OrderItem[],
+      }));
+
+      setOrders(normalizedOrders);
     }
 
     setIsLoading(false);
@@ -88,24 +91,31 @@ export default function OrdersPage() {
     fetchOrders();
   }, []);
 
-  const updateOrderStatus = async (orderId: string, newStatus: Order['status']) => {
+  const updateOrderStatus = async (
+    orderId: string,
+    newStatus: Order["status"]
+  ) => {
     setIsUpdating(true);
     const supabase = createClient();
 
     const { error } = await supabase
-      .from('orders')
+      .from("orders")
       .update({ status: newStatus })
-      .eq('id', orderId);
+      .eq("id", orderId);
 
     if (error) {
-      console.error('Error updating order status:', error);
+      console.error("Error updating order status:", error);
     } else {
       // Update local state
-      setOrders(prev => prev.map(order =>
-        order.id === orderId ? { ...order, status: newStatus } : order
-      ));
+      setOrders((prev) =>
+        prev.map((order) =>
+          order.id === orderId ? { ...order, status: newStatus } : order
+        )
+      );
       if (selectedOrder?.id === orderId) {
-        setSelectedOrder(prev => prev ? { ...prev, status: newStatus } : null);
+        setSelectedOrder((prev) =>
+          prev ? { ...prev, status: newStatus } : null
+        );
       }
     }
 
@@ -113,8 +123,10 @@ export default function OrdersPage() {
   };
 
   const filteredOrders = orders.filter((order) => {
-    const customerName = `${order.shipping_address?.firstName || ''} ${order.shipping_address?.lastName || ''}`.toLowerCase();
-    const customerEmail = order.shipping_address?.email?.toLowerCase() || '';
+    const customerName = `${order.shipping_address?.firstName || ""} ${
+      order.shipping_address?.lastName || ""
+    }`.toLowerCase();
+    const customerEmail = order.shipping_address?.email?.toLowerCase() || "";
     const searchLower = search.toLowerCase();
 
     const matchesSearch =
@@ -126,12 +138,12 @@ export default function OrdersPage() {
   });
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -140,7 +152,9 @@ export default function OrdersPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-serif font-bold text-olive-800">Orders</h1>
+          <h1 className="text-3xl font-serif font-bold text-olive-800">
+            Orders
+          </h1>
           <p className="text-olive-600 mt-1">
             Manage and track all customer orders ({orders.length} total)
           </p>
@@ -152,7 +166,7 @@ export default function OrdersPage() {
           disabled={isLoading}
           className="flex items-center gap-2 px-4 py-2 bg-olive-100 hover:bg-olive-200 text-olive-700 rounded-lg transition-colors disabled:opacity-50"
         >
-          <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
           Refresh
         </motion.button>
       </div>
@@ -172,7 +186,7 @@ export default function OrdersPage() {
         <div className="flex items-center gap-2">
           <Filter className="w-5 h-5 text-olive-400" />
           <select
-            value={statusFilter || ''}
+            value={statusFilter || ""}
             onChange={(e) => setStatusFilter(e.target.value || null)}
             className="px-4 py-3 rounded-xl border border-olive-200 focus:border-gold-400 focus:ring-2 focus:ring-gold-400/20 outline-none transition-all bg-white"
           >
@@ -196,11 +210,13 @@ export default function OrdersPage() {
               key={status}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => setStatusFilter(statusFilter === status ? null : status)}
+              onClick={() =>
+                setStatusFilter(statusFilter === status ? null : status)
+              }
               className={`p-4 rounded-xl border-2 transition-colors ${
                 statusFilter === status
-                  ? 'border-gold-400 bg-gold-50'
-                  : 'border-olive-100 bg-white hover:border-olive-200'
+                  ? "border-gold-400 bg-gold-50"
+                  : "border-olive-100 bg-white hover:border-olive-200"
               }`}
             >
               <div className="flex items-center gap-3">
@@ -255,23 +271,36 @@ export default function OrdersPage() {
                 </thead>
                 <tbody className="divide-y divide-olive-100">
                   {filteredOrders.map((order) => {
-                    const StatusIcon = statusConfig[order.status]?.icon || Clock;
-                    const statusStyle = statusConfig[order.status]?.color || 'bg-gray-100 text-gray-600';
+                    const StatusIcon =
+                      statusConfig[order.status]?.icon || Clock;
+                    const statusStyle =
+                      statusConfig[order.status]?.color ||
+                      "bg-gray-100 text-gray-600";
                     return (
-                      <tr key={order.id} className="hover:bg-olive-50/50 transition-colors">
+                      <tr
+                        key={order.id}
+                        className="hover:bg-olive-50/50 transition-colors"
+                      >
                         <td className="px-6 py-4 font-medium text-olive-800">
                           {order.id.slice(0, 8).toUpperCase()}
                         </td>
                         <td className="px-6 py-4">
                           <div>
                             <p className="font-medium text-olive-800">
-                              {order.shipping_address?.firstName} {order.shipping_address?.lastName}
+                              {order.shipping_address?.firstName}{" "}
+                              {order.shipping_address?.lastName}
                             </p>
-                            <p className="text-sm text-olive-500">{order.shipping_address?.email}</p>
+                            <p className="text-sm text-olive-500">
+                              {order.shipping_address?.email}
+                            </p>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-olive-600">{formatDate(order.created_at)}</td>
-                        <td className="px-6 py-4 text-olive-600">{order.items?.length || 0} items</td>
+                        <td className="px-6 py-4 text-olive-600">
+                          {formatDate(order.created_at)}
+                        </td>
+                        <td className="px-6 py-4 text-olive-600">
+                          {order.items?.length || 0} items
+                        </td>
                         <td className="px-6 py-4 font-semibold text-olive-800">
                           ${Number(order.total).toFixed(2)}
                         </td>
@@ -350,11 +379,13 @@ export default function OrdersPage() {
                     <span className="text-olive-700 font-medium">Status:</span>
                     <span
                       className={`inline-flex items-center gap-1 px-3 py-1 text-sm rounded-full ${
-                        statusConfig[selectedOrder.status]?.color || 'bg-gray-100 text-gray-600'
+                        statusConfig[selectedOrder.status]?.color ||
+                        "bg-gray-100 text-gray-600"
                       }`}
                     >
                       {(() => {
-                        const Icon = statusConfig[selectedOrder.status]?.icon || Clock;
+                        const Icon =
+                          statusConfig[selectedOrder.status]?.icon || Clock;
                         return <Icon className="w-4 h-4" />;
                       })()}
                       <span className="capitalize">{selectedOrder.status}</span>
@@ -362,7 +393,12 @@ export default function OrdersPage() {
                   </div>
                   <select
                     value={selectedOrder.status}
-                    onChange={(e) => updateOrderStatus(selectedOrder.id, e.target.value as Order['status'])}
+                    onChange={(e) =>
+                      updateOrderStatus(
+                        selectedOrder.id,
+                        e.target.value as Order["status"]
+                      )
+                    }
                     disabled={isUpdating}
                     className="px-3 py-2 rounded-lg border border-olive-200 focus:border-gold-400 focus:ring-2 focus:ring-gold-400/20 outline-none transition-all bg-white text-sm disabled:opacity-50"
                   >
@@ -384,7 +420,8 @@ export default function OrdersPage() {
                     </h3>
                     <div className="text-olive-600 space-y-1">
                       <p className="font-medium text-olive-800">
-                        {selectedOrder.shipping_address?.firstName} {selectedOrder.shipping_address?.lastName}
+                        {selectedOrder.shipping_address?.firstName}{" "}
+                        {selectedOrder.shipping_address?.lastName}
                       </p>
                       <p>{selectedOrder.shipping_address?.email}</p>
                       {selectedOrder.shipping_address?.phone && (
@@ -405,7 +442,9 @@ export default function OrdersPage() {
                     <div className="text-olive-600 space-y-1">
                       <p>{selectedOrder.shipping_address?.address}</p>
                       <p>
-                        {selectedOrder.shipping_address?.city}, {selectedOrder.shipping_address?.state} {selectedOrder.shipping_address?.zip}
+                        {selectedOrder.shipping_address?.city},{" "}
+                        {selectedOrder.shipping_address?.state}{" "}
+                        {selectedOrder.shipping_address?.zip}
                       </p>
                       <p>{selectedOrder.shipping_address?.country}</p>
                     </div>
@@ -423,7 +462,7 @@ export default function OrdersPage() {
                       <div
                         key={index}
                         className={`flex items-center gap-4 p-4 ${
-                          index > 0 ? 'border-t border-olive-100' : ''
+                          index > 0 ? "border-t border-olive-100" : ""
                         }`}
                       >
                         {item.image && (
@@ -437,14 +476,20 @@ export default function OrdersPage() {
                           </div>
                         )}
                         <div className="flex-1">
-                          <p className="font-medium text-olive-800">{item.name}</p>
-                          <p className="text-sm text-olive-500">Qty: {item.quantity}</p>
+                          <p className="font-medium text-olive-800">
+                            {item.name}
+                          </p>
+                          <p className="text-sm text-olive-500">
+                            Qty: {item.quantity}
+                          </p>
                         </div>
                         <div className="text-right">
                           <p className="font-semibold text-olive-800">
                             ${(item.price * item.quantity).toFixed(2)}
                           </p>
-                          <p className="text-sm text-olive-500">${item.price.toFixed(2)} each</p>
+                          <p className="text-sm text-olive-500">
+                            ${item.price.toFixed(2)} each
+                          </p>
                         </div>
                       </div>
                     ))}
@@ -453,7 +498,9 @@ export default function OrdersPage() {
 
                 {/* Order Total */}
                 <div className="flex justify-between items-center p-4 bg-gold-50 rounded-xl">
-                  <span className="font-semibold text-olive-800">Order Total</span>
+                  <span className="font-semibold text-olive-800">
+                    Order Total
+                  </span>
                   <span className="text-2xl font-bold text-olive-800">
                     ${Number(selectedOrder.total).toFixed(2)}
                   </span>

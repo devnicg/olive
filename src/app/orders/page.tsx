@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import Image from 'next/image';
-import Link from 'next/link';
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
+import Link from "next/link";
 import {
   Package,
   Truck,
@@ -14,9 +14,10 @@ import {
   ShoppingBag,
   MapPin,
   RefreshCw,
-} from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
-import { useAuth } from '@/context/AuthContext';
+} from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/context/AuthContext";
+import type { Database } from "@/types/database";
 
 interface OrderItem {
   product_id: string;
@@ -38,49 +39,46 @@ interface ShippingAddress {
   country: string;
 }
 
-interface Order {
-  id: string;
-  created_at: string;
-  status: 'pending' | 'processing' | 'shipped' | 'completed' | 'cancelled';
-  total: number;
+type DbOrderRow = Database["public"]["Tables"]["orders"]["Row"];
+type Order = Omit<DbOrderRow, "shipping_address" | "items"> & {
   shipping_address: ShippingAddress;
   items: OrderItem[];
-}
+};
 
 const statusConfig = {
   pending: {
-    color: 'bg-yellow-100 text-yellow-600',
+    color: "bg-yellow-100 text-yellow-600",
     icon: Clock,
-    label: 'Order Placed',
-    description: 'Your order has been received and is being reviewed.',
+    label: "Order Placed",
+    description: "Your order has been received and is being reviewed.",
   },
   processing: {
-    color: 'bg-blue-100 text-blue-600',
+    color: "bg-blue-100 text-blue-600",
     icon: Package,
-    label: 'Processing',
-    description: 'Your order is being prepared for shipment.',
+    label: "Processing",
+    description: "Your order is being prepared for shipment.",
   },
   shipped: {
-    color: 'bg-purple-100 text-purple-600',
+    color: "bg-purple-100 text-purple-600",
     icon: Truck,
-    label: 'Shipped',
-    description: 'Your order is on its way!',
+    label: "Shipped",
+    description: "Your order is on its way!",
   },
   completed: {
-    color: 'bg-green-100 text-green-600',
+    color: "bg-green-100 text-green-600",
     icon: CheckCircle,
-    label: 'Delivered',
-    description: 'Your order has been delivered successfully.',
+    label: "Delivered",
+    description: "Your order has been delivered successfully.",
   },
   cancelled: {
-    color: 'bg-red-100 text-red-600',
+    color: "bg-red-100 text-red-600",
     icon: XCircle,
-    label: 'Cancelled',
-    description: 'This order has been cancelled.',
+    label: "Cancelled",
+    description: "This order has been cancelled.",
   },
 };
 
-const statusSteps = ['pending', 'processing', 'shipped', 'completed'];
+const statusSteps = ["pending", "processing", "shipped", "completed"];
 
 export default function OrdersPage() {
   const { user, isLoading: authLoading } = useAuth();
@@ -98,15 +96,21 @@ export default function OrdersPage() {
       const supabase = createClient();
 
       const { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        .from("orders")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
 
       if (error) {
-        console.error('Error fetching orders:', error);
+        console.error("Error fetching orders:", error);
       } else {
-        setOrders(data as Order[]);
+        const normalizedOrders: Order[] = (data ?? []).map((row) => ({
+          ...row,
+          shipping_address: row.shipping_address as unknown as ShippingAddress,
+          items: row.items as unknown as OrderItem[],
+        }));
+
+        setOrders(normalizedOrders);
       }
 
       setIsLoading(false);
@@ -118,15 +122,15 @@ export default function OrdersPage() {
   }, [user, authLoading]);
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
   const getStatusIndex = (status: string) => {
-    if (status === 'cancelled') return -1;
+    if (status === "cancelled") return -1;
     return statusSteps.indexOf(status);
   };
 
@@ -150,7 +154,8 @@ export default function OrdersPage() {
             Sign in to view your orders
           </h1>
           <p className="text-olive-600 mb-8">
-            You need to be logged in to view your order history and track your deliveries.
+            You need to be logged in to view your order history and track your
+            deliveries.
           </p>
           <Link href="/login?redirect=/orders">
             <motion.button
@@ -179,9 +184,7 @@ export default function OrdersPage() {
             <h1 className="text-3xl md:text-4xl font-serif font-bold text-white">
               My Orders
             </h1>
-            <p className="mt-2 text-olive-200">
-              Track and manage your orders
-            </p>
+            <p className="mt-2 text-olive-200">Track and manage your orders</p>
           </motion.div>
         </div>
       </div>
@@ -198,7 +201,8 @@ export default function OrdersPage() {
               No orders yet
             </h2>
             <p className="text-olive-600 mb-8">
-              Looks like you haven&apos;t placed any orders yet. Start shopping to see your orders here!
+              Looks like you haven&apos;t placed any orders yet. Start shopping
+              to see your orders here!
             </p>
             <Link href="/shop">
               <motion.button
@@ -228,7 +232,9 @@ export default function OrdersPage() {
                 >
                   {/* Order Header */}
                   <button
-                    onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
+                    onClick={() =>
+                      setExpandedOrder(isExpanded ? null : order.id)
+                    }
                     className="w-full p-6 flex items-center justify-between hover:bg-olive-50 transition-colors"
                   >
                     <div className="flex items-center gap-4">
@@ -240,7 +246,8 @@ export default function OrdersPage() {
                           Order #{order.id.slice(0, 8).toUpperCase()}
                         </p>
                         <p className="text-sm text-olive-500">
-                          {formatDate(order.created_at)} • {order.items?.length || 0} items
+                          {formatDate(order.created_at)} •{" "}
+                          {order.items?.length || 0} items
                         </p>
                       </div>
                     </div>
@@ -249,13 +256,17 @@ export default function OrdersPage() {
                         <p className="font-bold text-olive-800">
                           ${Number(order.total).toFixed(2)}
                         </p>
-                        <p className={`text-sm ${statusInfo.color.replace('bg-', 'text-').replace('-100', '-600')}`}>
+                        <p
+                          className={`text-sm ${statusInfo.color
+                            .replace("bg-", "text-")
+                            .replace("-100", "-600")}`}
+                        >
                           {statusInfo.label}
                         </p>
                       </div>
                       <ChevronRight
                         className={`w-5 h-5 text-olive-400 transition-transform ${
-                          isExpanded ? 'rotate-90' : ''
+                          isExpanded ? "rotate-90" : ""
                         }`}
                       />
                     </div>
@@ -266,36 +277,48 @@ export default function OrdersPage() {
                     {isExpanded && (
                       <motion.div
                         initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
+                        animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.3 }}
                         className="overflow-hidden"
                       >
                         <div className="px-6 pb-6 space-y-6 border-t border-olive-100 pt-6">
                           {/* Status Tracker */}
-                          {order.status !== 'cancelled' && (
+                          {order.status !== "cancelled" && (
                             <div className="relative">
                               <div className="flex justify-between">
                                 {statusSteps.map((step, idx) => {
-                                  const stepInfo = statusConfig[step as keyof typeof statusConfig];
+                                  const stepInfo =
+                                    statusConfig[
+                                      step as keyof typeof statusConfig
+                                    ];
                                   const StepIcon = stepInfo.icon;
                                   const isCompleted = idx <= currentStepIndex;
                                   const isCurrent = idx === currentStepIndex;
 
                                   return (
-                                    <div key={step} className="flex flex-col items-center relative z-10">
+                                    <div
+                                      key={step}
+                                      className="flex flex-col items-center relative z-10"
+                                    >
                                       <div
                                         className={`w-10 h-10 rounded-full flex items-center justify-center ${
                                           isCompleted
-                                            ? 'bg-gold-500 text-white'
-                                            : 'bg-olive-100 text-olive-400'
-                                        } ${isCurrent ? 'ring-4 ring-gold-200' : ''}`}
+                                            ? "bg-gold-500 text-white"
+                                            : "bg-olive-100 text-olive-400"
+                                        } ${
+                                          isCurrent
+                                            ? "ring-4 ring-gold-200"
+                                            : ""
+                                        }`}
                                       >
                                         <StepIcon className="w-5 h-5" />
                                       </div>
                                       <p
                                         className={`mt-2 text-xs font-medium ${
-                                          isCompleted ? 'text-olive-800' : 'text-olive-400'
+                                          isCompleted
+                                            ? "text-olive-800"
+                                            : "text-olive-400"
                                         }`}
                                       >
                                         {stepInfo.label}
@@ -309,7 +332,11 @@ export default function OrdersPage() {
                                 <div
                                   className="h-full bg-gold-500 transition-all duration-500"
                                   style={{
-                                    width: `${(currentStepIndex / (statusSteps.length - 1)) * 100}%`,
+                                    width: `${
+                                      (currentStepIndex /
+                                        (statusSteps.length - 1)) *
+                                      100
+                                    }%`,
                                   }}
                                 />
                               </div>
@@ -318,18 +345,22 @@ export default function OrdersPage() {
 
                           {/* Status Message */}
                           <div className={`p-4 rounded-xl ${statusInfo.color}`}>
-                            <p className="font-medium">{statusInfo.description}</p>
+                            <p className="font-medium">
+                              {statusInfo.description}
+                            </p>
                           </div>
 
                           {/* Order Items */}
                           <div className="space-y-3">
-                            <h4 className="font-semibold text-olive-800">Order Items</h4>
+                            <h4 className="font-semibold text-olive-800">
+                              Order Items
+                            </h4>
                             <div className="border border-olive-100 rounded-xl overflow-hidden">
                               {order.items?.map((item, idx) => (
                                 <div
                                   key={idx}
                                   className={`flex items-center gap-4 p-4 ${
-                                    idx > 0 ? 'border-t border-olive-100' : ''
+                                    idx > 0 ? "border-t border-olive-100" : ""
                                   }`}
                                 >
                                   {item.image && (
@@ -343,8 +374,12 @@ export default function OrdersPage() {
                                     </div>
                                   )}
                                   <div className="flex-1">
-                                    <p className="font-medium text-olive-800">{item.name}</p>
-                                    <p className="text-sm text-olive-500">Qty: {item.quantity}</p>
+                                    <p className="font-medium text-olive-800">
+                                      {item.name}
+                                    </p>
+                                    <p className="text-sm text-olive-500">
+                                      Qty: {item.quantity}
+                                    </p>
                                   </div>
                                   <p className="font-semibold text-olive-800">
                                     ${(item.price * item.quantity).toFixed(2)}
@@ -362,11 +397,14 @@ export default function OrdersPage() {
                             </h4>
                             <div className="text-olive-600 p-4 bg-olive-50 rounded-xl">
                               <p className="font-medium text-olive-800">
-                                {order.shipping_address?.firstName} {order.shipping_address?.lastName}
+                                {order.shipping_address?.firstName}{" "}
+                                {order.shipping_address?.lastName}
                               </p>
                               <p>{order.shipping_address?.address}</p>
                               <p>
-                                {order.shipping_address?.city}, {order.shipping_address?.state} {order.shipping_address?.zip}
+                                {order.shipping_address?.city},{" "}
+                                {order.shipping_address?.state}{" "}
+                                {order.shipping_address?.zip}
                               </p>
                               <p>{order.shipping_address?.country}</p>
                             </div>

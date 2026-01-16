@@ -40,27 +40,30 @@ export default function AdminDashboard() {
       const supabase = createClient();
 
       // Fetch recent orders
-      const { data: orders } = await supabase
-        .from('orders')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: orders } = await (supabase
+        .from('orders') as any)
         .select('*')
         .order('created_at', { ascending: false })
         .limit(5);
 
       if (orders) {
-        setRecentOrders(orders);
+        setRecentOrders(orders as Order[]);
       }
 
       // Fetch stats
-      const { data: allOrders } = await supabase
-        .from('orders')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: allOrders } = await (supabase
+        .from('orders') as any)
         .select('total, status');
 
-      const { count: customerCount } = await supabase
-        .from('profiles')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { count: customerCount } = await (supabase
+        .from('profiles') as any)
         .select('*', { count: 'exact', head: true });
 
       if (allOrders) {
-        const totalRevenue = allOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+        const totalRevenue = (allOrders as { total: number }[]).reduce((sum, order) => sum + (order.total || 0), 0);
         setStats({
           totalRevenue,
           totalOrders: allOrders.length,

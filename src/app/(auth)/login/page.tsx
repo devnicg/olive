@@ -1,27 +1,41 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { Mail, Lock, Eye, EyeOff, Leaf, AlertCircle } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { Mail, Lock, Eye, EyeOff, Leaf, AlertCircle } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-olive-50 flex items-center justify-center px-4 py-12">
+          <div className="text-olive-600">Loading...</div>
+        </div>
+      }
+    >
+      <LoginPageInner />
+    </Suspense>
+  );
+}
+
+function LoginPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get('redirect') || '/';
+  const redirect = searchParams.get("redirect") || "/";
   const { signIn } = useAuth();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setIsLoading(true);
 
     const { error } = await signIn(email, password);
@@ -49,7 +63,9 @@ export default function LoginPage() {
               Olivia Grove
             </span>
           </Link>
-          <p className="mt-2 text-olive-600">Welcome back! Sign in to your account.</p>
+          <p className="mt-2 text-olive-600">
+            Welcome back! Sign in to your account.
+          </p>
         </div>
 
         {/* Form */}
@@ -94,7 +110,7 @@ export default function LoginPage() {
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-olive-400" />
                 <input
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -138,13 +154,13 @@ export default function LoginPage() {
               disabled={isLoading}
               className="w-full py-3 bg-gold-500 hover:bg-gold-600 text-white font-semibold rounded-full transition-colors shadow-lg shadow-gold-500/30 disabled:opacity-70"
             >
-              {isLoading ? 'Signing in...' : 'Sign In'}
+              {isLoading ? "Signing in..." : "Sign In"}
             </motion.button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-olive-600">
-              Don&apos;t have an account?{' '}
+              Don&apos;t have an account?{" "}
               <Link
                 href="/register"
                 className="text-gold-600 hover:text-gold-700 font-medium"
